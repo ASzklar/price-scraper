@@ -39,7 +39,7 @@ jobs:
         run: python unify_product_names.py
 
       - name: Upload raw CSVs as artifacts
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: precios-raw
           path: Data/Raw/*.csv
