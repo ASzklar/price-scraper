@@ -1,0 +1,45 @@
+name: Daily Price Scraper
+
+on:
+  schedule:
+    # Corre cada día a las 07:00 ART (10:00 UTC)
+    - cron: '0 10 * * *'
+  workflow_dispatch:  # Permite disparar manualmente el workflow
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Setup Node.js for Playwright
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run all supermarkets scraper
+        run: python scrape_all_async_v2.py
+
+      - name: Normalize product names
+        run: python unify_product_names.py
+
+      - name: Upload raw CSVs as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: precios-raw
+          path: Data/Raw/*.csv
