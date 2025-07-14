@@ -2,9 +2,8 @@ name: Daily Price Scraper
 
 on:
   schedule:
-    # Corre cada día a las 07:00 ART (10:00 UTC)
-    - cron: '0 10 * * *'
-  workflow_dispatch:  # Permite disparar manualmente el workflow
+    - cron: '0 10 * * *'    # 07:00 ARG = 10:00 UTC
+  workflow_dispatch:
 
 jobs:
   run-scraper:
@@ -24,16 +23,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Setup Node.js for Playwright
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      - name: Install Playwright browsers (Python)
+        run: |
+          python -m playwright install --with-deps
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+      - name: Debug — listar Data antes del scraping
+        run: ls -R Data || echo "No existe carpeta Data aún"
 
       - name: Run all supermarkets scraper
         run: python scrape_all_async_v2.py
+
+      - name: Debug — listar Data/Raw después del scraping
+        run: ls -R Data/Raw || echo "Data/Raw sigue vacío"
 
       - name: Normalize product names
         run: python unify_product_names.py
