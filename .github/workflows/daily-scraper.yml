@@ -1,14 +1,17 @@
 name: Daily Price Scraper
 
+permissions:
+  contents: write
+
 on:
   schedule:
-    - cron: '0 10 * * *' # 07:00 ARG = 10:00 UTC
-  workflow_dispatch:    # Para ejecución manual
+    - cron: '0 10 * * *'  
+  workflow_dispatch:
   push:
     branches:
       - main
     paths-ignore:
-      - 'Data/**'      # Evita loops: commits en Data/ no re-disparan el workflow
+      - 'Data/**'
 
 jobs:
   run-scraper:
@@ -18,7 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          persist-credentials: true  # Permite push con GITHUB_TOKEN
+          persist-credentials: true
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
@@ -31,30 +34,21 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install Playwright browsers
-        run: |
-          python -m playwright install --with-deps
+        run: python -m playwright install --with-deps
 
       - name: Run all supermarkets scraper
-        run: |
-          python scrape_all_async_v2.py
+        run: python scrape_all_async_v2.py
 
       - name: Normalize product names
-        run: |
-          python unify_product_names.py
+        run: python unify_product_names.py
 
       - name: Commit & push generated CSVs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Configurar autor de commit
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Añadir CSVs nuevos
           git add Data/Cleaned/*.csv Data/Used/*.csv
-
-          # Commit si hay cambios
           git commit -m "Add generated CSVs for run ${{ github.run_number }}" || echo "No changes to commit"
-
-          # Push a main
           git push origin HEAD:main
