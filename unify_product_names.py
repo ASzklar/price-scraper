@@ -454,33 +454,54 @@ unification_map_felices_las_vacas = {
 }
 
 # --- Main execution ---
+import os
+
 PRODUCT_COLUMN = 'producto'
 SUPERMARKET_COLUMNS = ['carrefour', 'coope', 'coto', 'dia', 'disco', 'vea']
-RAW_DATA_PATH = r'Data\Raw' # Raw data folder
-CLEANED_DATA_PATH = r'Data\Cleaned' # Cleaned data folder
 
-# Crear carpeta Used si no existe
-USED_DATA_PATH = r'Data\Used'
-os.makedirs(USED_DATA_PATH, exist_ok=True)
+# Definir rutas multiplataforma
+RAW_DATA_PATH     = os.path.join("Data", "Raw")
+CLEANED_DATA_PATH = os.path.join("Data", "Cleaned")
+USED_DATA_PATH    = os.path.join("Data", "Used")
+
+# Crear directorios si no existen
+os.makedirs(RAW_DATA_PATH,     exist_ok=True)
+os.makedirs(CLEANED_DATA_PATH, exist_ok=True)
+os.makedirs(USED_DATA_PATH,    exist_ok=True)
 
 # Recorrer todos los CSVs en la carpeta Raw
-for file in os.listdir(RAW_DATA_PATH):
-    if file.endswith(".csv") and file.startswith("precios_async_"):
-        input_path = os.path.join(RAW_DATA_PATH, file)
+for filename in os.listdir(RAW_DATA_PATH):
+    if not (filename.endswith(".csv") and filename.startswith("precios_async_")):
+        continue
 
-        if "_not.csv" in file:
-            unification_map = unification_map_not
-        elif "_felices_las_vacas.csv" in file:
-            unification_map = unification_map_felices_las_vacas
-        elif "_vegetalex.csv" in file:
-            unification_map = unification_map_vegetalex
-        else:
-            print(f"⚠️ No se encontró un 'unification_map' para el archivo: {file}")
-            continue
+    input_path = os.path.join(RAW_DATA_PATH, filename)
 
-        try:
-            unify_products(input_path, CLEANED_DATA_PATH, PRODUCT_COLUMN, SUPERMARKET_COLUMNS, unification_map)
-            # Si el procesamiento fue exitoso, mover el archivo a Used
-            os.rename(input_path, os.path.join(USED_DATA_PATH, file))
-        except Exception as e:
-            print(f"❌ Error procesando {file}: {e}")
+    # Seleccionar el mapa de unificación según el nombre del archivo
+    if "_not.csv" in filename:
+        unification_map = unification_map_not
+    elif "_felices_las_vacas.csv" in filename:
+        unification_map = unification_map_felices_las_vacas
+    elif "_vegetalex.csv" in filename:
+        unification_map = unification_map_vegetalex
+    else:
+        print(f"⚠️ No se encontró un 'unification_map' para el archivo: {filename}")
+        continue
+
+    try:
+        # Ejecutar la función de unificación y guardar en Cleaned
+        unify_products(
+            input_path,
+            CLEANED_DATA_PATH,
+            PRODUCT_COLUMN,
+            SUPERMARKET_COLUMNS,
+            unification_map
+        )
+        print(f"✅ Unificado: {filename}")
+
+        # Mover el CSV procesado a Used
+        dest_path = os.path.join(USED_DATA_PATH, filename)
+        os.rename(input_path, dest_path)
+        print(f"📦 Archivo movido a Used: {dest_path}")
+
+    except Exception as e:
+        print(f"❌ Error procesando {filename}: {e}")
