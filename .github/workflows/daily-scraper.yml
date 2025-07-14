@@ -2,16 +2,23 @@ name: Daily Price Scraper
 
 on:
   schedule:
-    - cron: '0 10 * * *'    # 07:00 ARG = 10:00 UTC
-  workflow_dispatch:
+    - cron: '0 10 * * *' # 07:00 ARG = 10:00 UTC
+  workflow_dispatch:    # Para ejecución manual
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'Data/**'      # Evita loops: commits en Data/ no re-disparan el workflow
 
 jobs:
   run-scraper:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          persist-credentials: true  # Permite push con GITHUB_TOKEN
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
@@ -23,24 +30,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Playwright browsers (Python)
+      - name: Install Playwright browsers
         run: |
           python -m playwright install --with-deps
 
-      - name: Debug — listar Data antes del scraping
-        run: ls -R Data || echo "No existe carpeta Data aún"
-
       - name: Run all supermarkets scraper
-        run: python scrape_all_async_v2.py
-
-      - name: Debug — listar Data/Raw después del scraping
-        run: ls -R Data/Raw || echo "Data/Raw sigue vacío"
+        run: |
+          python scrape_all_async_v2.py
 
       - name: Normalize product names
-        run: python unify_product_names.py
+        run: |
+          python unify_product_names.py
 
-      - name: Upload raw CSVs as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: precios-raw
-          path: Data/Raw/*.csv
+      - name: Commit & push generated CSVs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configurar autor de commit
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Añadir CSVs nuevos
+          git add Data/Cleaned/*.csv Data/Used/*.csv
+
+          # Commit si hay cambios
+          git commit -m "Add generated CSVs for run ${{ github.run_number }}" || echo "No changes to commit"
+
+          # Push a main
+          git push origin HEAD:main
