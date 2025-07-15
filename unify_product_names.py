@@ -141,7 +141,8 @@ unification_map_not = {
     'Not Cheese Cheddar 140g': [
         'Cheddar 140 Gr Not Cheese',
         'Notcheese Cheddar Notco 140 Gr.',
-        'Queso Cheddar Not Cheese 140 Grm'
+        'Queso Cheddar Not Cheese 140 Grm',
+        'Queso Cheddar Not Cheese Not Cheese 140 Grm'
     ],
     'Not Chicken Relleno Champis 240g': [
         'Chicken Crispy Rellena Champis X 240 Gr Not Chicken',
@@ -183,10 +184,11 @@ unification_map_not = {
         'Notchicken Burger X2 160grs',
         'Medallón A Base De Vegetales Not Chiken 160g'
     ],
-    'Not Burger Crispy 2x100g': [
+    'Not Chicken Burger Crispy 2x100g': [
         'Burger Crispy 2 Un X 100 Gr Not Chicken',
         'Medallón crispy Not chicken burger flowpack x2 100 g.',
-        'Medallón A Base De Plantas Sabor Pollo Not Chiken 200g'
+        'Medallón A Base De Plantas Sabor Pollo Not Chiken 200g',
+        'Notchicken Burger Crispy X2 200grs'
     ],
     'Medallones Notco Not Burger X2 160grs': [
         'Medallon A Base De Vegetal X2 Not Burger 160g',
@@ -204,19 +206,22 @@ unification_map_not = {
     'Not Burger XL 2x120g (240g)': [
         'Medallon A Base De Vegetal Xl X2 Not Burger 240g',
         'Medallón The Not Co Premium Not Burger 240 Gr X 2 U',
-        'Medallón Not burger premium XL flow pack 2 uni'
+        'Medallón Not burger premium XL flow pack 2 uni',
+        'Medallones Notco Not Burger Xl Premium X2 240grs'
     ],
     'Not Burger Parrillera 220g': [
         'Medallones Estilo Parrillera Not Burger 220 Grm',
         'Medallón Not burger parrillera 2 uni',
         'Not Burger Parrillera 220 Gr.',
-        'Notburger The Not Co Parrillera 110 Gr'
+        'Notburger The Not Co Parrillera 110 Gr',
+        'Medallones Notco Burger Estilo Parrillera Congelados X2 110grs'
     ],
     'Not Burguer Quick 2 U De 65 Gr': [
         'Not Burguer Quick 2 U De 65 Gr',
         'Not Burguer Quick Notco 140 Gr.',
         'Medallón Not burger quick flow pack 2 uni',
-        'Medallon A Base De Vegetales Not Burger 130g'
+        'Medallon A Base De Vegetales Not Burger 130g',
+        'Medallones Notco Notburger Quick Sabor Carne X2 130grs'
     ],
     'Not Chicken Mila con Semillas 220g': [
         'Notchicken Mila Notco Con Semillas 220grs',
@@ -225,10 +230,6 @@ unification_map_not = {
     'Not Mila con Semillas 220g': [
         'Notmila Notco Con Semillas 220grs',
         'Mila con semillas NotMila 110 grs'
-    ],
-    'Not Mila 220g': [
-        'Not Mila 220g',
-        'Milanesas Notco Not Mila X2 220grs'
     ],
     'Not Cheese Mozzarella 250g': [
         'Mozzarella 250 Gr Not Cheese',
@@ -265,6 +266,9 @@ unification_map_not = {
         'Alimento A Base De Plantas Not Mila 220g',
         'Milanesa 2.0 Notmila 110 Gr.',
         'NotMila meat 2.0 220 g.'
+        'Not Mila 220g',
+        'Milanesas Notco Not Mila X2 220grs',
+        'Alimento A Base De Plantas Not Mila 220g'
     ],
     'Not Chicken Nuggets Sticks 300g': [
         'Nuggets Not chicken sticks 300 g.',
