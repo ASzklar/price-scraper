@@ -92,7 +92,8 @@ unification_map_not = {
     'Not Cream Cheese 210g': [
         'Aderezo Not cream cheese 210 g.',
         'Queso Crema Not Cream 210 Gr.',
-        'Notcreamcheese 210 Gr'
+        'Notcreamcheese 210 Gr',
+        'Notcreamcheese The Not Co 210 Gr'
     ],
     'Not Cheese Bastoncitos 300g': [
         'Alimento A Base De Plantas Bastoncitos Not Cheese 300g',
@@ -110,7 +111,8 @@ unification_map_not = {
         'Alimento A Base De Plantas Nuggets Not Chiken 300g',
         'Nuggets 300 Gr Not Chicken',
         'Nuggets Not Chicken 300 Gr.',
-        'Nuggets Not chicken en bolsa 300 g.'
+        'Nuggets Not chicken en bolsa 300 g.',
+        'Nuggets Notchicken Notco 0.3kgs'
     ],
     'Not Chicken Relleno Espinaca 240g': [
         'Alimento A Base De Plantas Relleno De Espinaca Not Chiken 240g',
@@ -147,7 +149,10 @@ unification_map_not = {
     ],
     'Not Chorixo 240g': [
         'Chorizo Vegano X 240 Gr Not Chorixo',
-        'Chorizo a base de planta NotChorixo 240 grs'
+        'Chorizo a base de planta NotChorixo 240 grs',
+        'Notco Not Chorixo X4 240grs',
+        'Not Chorixo 240g',
+        'Alimento A Base De Plantas Not Chorixo 240g'
     ],
     'Not Ice Cream Chocolate Chip 330g': [
         'Helado Chocolate Chip NOT ICE CREAM 330 Grm',
@@ -213,6 +218,18 @@ unification_map_not = {
         'Medallón Not burger quick flow pack 2 uni',
         'Medallon A Base De Vegetales Not Burger 130g'
     ],
+    'Not Chicken Mila con Semillas 220g': [
+        'Notchicken Mila Notco Con Semillas 220grs',
+        'Mila con semillas NotChicken 110 grs'
+    ],
+    'Not Mila con Semillas 220g': [
+        'Notmila Notco Con Semillas 220grs',
+        'Mila con semillas NotMila 110 grs'
+    ],
+    'Not Mila 220g': [
+        'Not Mila 220g',
+        'Milanesas Notco Not Mila X2 220grs'
+    ],
     'Not Cheese Mozzarella 250g': [
         'Mozzarella 250 Gr Not Cheese',
         'Mozzarella Notcheese 250 g.',
@@ -222,7 +239,9 @@ unification_map_not = {
     ],
     'Not Salxicha 250g': [
         'Salchicha de planta Not Salxicha 5 uni',
-        'Salchichas A Base De Plantas Not Salxicha 250g'
+        'Salchichas A Base De Plantas Not Salxicha 250g',
+        'Notco Not Salxicha X5 250grs',
+        'Salchicha de planta Not Salxicha 5 uni'
     ],
     'Not Ice Cream Paleta Chocolate Blanco 4x240g': [
         'Paletas Heladas Chocolate Blanco 4 Un X 240 Gr Not Icecream',
