@@ -265,7 +265,7 @@ unification_map_not = {
     'Not Mila 220g': [
         'Alimento A Base De Plantas Not Mila 220g',
         'Milanesa 2.0 Notmila 110 Gr.',
-        'NotMila meat 2.0 220 g.'
+        'NotMila meat 2.0 220 g.',
         'Not Mila 220g',
         'Milanesas Notco Not Mila X2 220grs',
         'Alimento A Base De Plantas Not Mila 220g'
