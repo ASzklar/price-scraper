@@ -117,14 +117,16 @@ pivot = pivot.rename(columns=SUPER_RENAMES)
 
 # Columnas de supermercados únicamente (excluyendo promedio histórico)
 cols_supers = list(SUPER_RENAMES.values())
+cols_supers_presentes = [col for col in cols_supers if col in pivot.columns]
 
 styled = (
     pivot
       .style
       .format("{:.2f}")
-      .highlight_max(axis=1, subset=cols_supers, color='crimson')
-      .highlight_min(axis=1, subset=cols_supers, color='forestgreen')
+      .highlight_max(axis=1, subset=cols_supers_presentes, color='crimson')
+      .highlight_min(axis=1, subset=cols_supers_presentes, color='forestgreen')
 )
+
 st.dataframe(styled, use_container_width=True)
 
 st.markdown(

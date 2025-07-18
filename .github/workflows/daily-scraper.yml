@@ -5,13 +5,8 @@ permissions:
 
 on:
   schedule:
-    - cron: '0 10 * * *'  
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - 'Data/**'
+    - cron: '0 10 * * *'  # Horario de ejecución: 10AM UTC = 7AM ARG
+  workflow_dispatch:      # Permite ejecución manual
 
 jobs:
   run-scraper:
