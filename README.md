@@ -88,7 +88,7 @@ streamlit run dashboard.py
 👉 Luego abrí tu navegador en: http://localhost:8501
 
 📈 Contexto: Dispersión de precios en Argentina
-En el mercado argentino, los precios de alimentos pueden variar hasta un 30–40 % entre supermercados para un mismo producto. Factores como ubicación, stock o promociones hacen difícil saber cuál es realmente la mejor oferta.
+En el mercado argentino, los precios de alimentos pueden variar hasta un 200% entre supermercados para un mismo producto. Y eso sin tener en cuenta promociones específicas.
 
 Este proyecto permite visualizar cómo cambian los precios a lo largo del tiempo y entre cadenas, facilitando la comparación y ayudando a los consumidores a tomar mejores decisiones.
 
