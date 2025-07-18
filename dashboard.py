@@ -65,7 +65,7 @@ fecha_sel = st.sidebar.selectbox(
     index=0,
     format_func=lambda x: x.strftime("%d-%m-%Y")
 )
-for _ in range(25):
+for _ in range(15):
     st.sidebar.write("")
 
 st.sidebar.markdown("---")
