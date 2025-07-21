@@ -26,19 +26,23 @@ SUPER_RENAMES = {
 
 # -------------------- Carga y cache de datos --------------------
 @st.cache_data
-def load_data():
+def load_data(filenames):
     dfs = []
-    for fp in glob.glob("Data/Cleaned/*.csv"):
+    for fp in filenames:
         df = pd.read_csv(fp, parse_dates=['fecha'])
         marca = os.path.basename(fp).split('_')[1]
         df['brand'] = marca.replace('felices', 'Felices las Vacas') \
                            .replace('vegetalex', 'Vegetalex') \
                            .replace('not', 'Not')
         dfs.append(df)
-    return pd.concat(dfs, ignore_index=True)
+    df = pd.concat(dfs, ignore_index=True)
+    df.rename(columns={'producto_unificado':'Producto'}, inplace=True)
+    return df
 
-df = load_data()
-df.rename(columns={'producto_unificado':'Producto'}, inplace=True)
+
+file_list = sorted(glob.glob("Data/Cleaned/*.csv"))
+df = load_data(filenames=file_list)
+
 # Obtener la fecha más reciente en el DataFrame
 ultima_fecha = df['fecha'].max().strftime("%d-%m-%Y")
 
