@@ -39,7 +39,6 @@ def load_data(filenames):
     df.rename(columns={'producto_unificado':'Producto'}, inplace=True)
     return df
 
-
 file_list = sorted(glob.glob("Data/Cleaned/*.csv"))
 df = load_data(filenames=file_list)
 

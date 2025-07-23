@@ -146,7 +146,8 @@ unification_map_not = {
     ],
     'Not Chicken Relleno Champis 240g': [
         'Chicken Crispy Rellena Champis X 240 Gr Not Chicken',
-        'Medallón relleno champis NotChicken 240 grs'
+        'Medallón relleno champis NotChicken 240 grs',
+        'Alimento A Base De Plantas Relleno Champis Not Chicken 240g'
     ],
     'Not Chorixo 240g': [
         'Chorizo Vegano X 240 Gr Not Chorixo',
@@ -270,10 +271,11 @@ unification_map_not = {
         'Milanesas Notco Not Mila X2 220grs',
         'Alimento A Base De Plantas Not Mila 220g'
     ],
-    'Not Chicken Nuggets Sticks 300g': [
+    'Not Chicken Sticks 300g': [
         'Nuggets Not chicken sticks 300 g.',
         'Nuggets Notco Not Chicken Sticks Con Hierbas Congelados 300grs',
-        'Sticks 300 Gr Not Chicken'
+        'Sticks 300 Gr Not Chicken',
+        'Crocantes Con Hierbas Not Chiken 300 Grm'
     ]
 }
 
