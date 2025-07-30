@@ -124,7 +124,8 @@ unification_map_not = {
     'Not Chicken Relleno Napolitana 240g': [
         'Alimento A Base De Plantas Relleno Napolitana Not Chiken 240g',
         'Medallones Notco Not Chicken Crispy Rellenas Napolitanas X2 0.24kgs',
-        'Not Chicken Crispy The Not Co Rellena Napolitana 240 Gr'
+        'Not Chicken Crispy The Not Co Rellena Napolitana 240 Gr',
+        'Medallón Not chicken rellena flow pack 2 uni'
     ],
     'Not Chicken Spicy 250g': [
         'Alimento A Base De Plantas Spicy Not Chicken 250g',
