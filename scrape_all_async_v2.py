@@ -28,14 +28,14 @@ async def scrape_otros_5(marca_a_buscar):
 async def scrape_all(marca_a_buscar):
     """Ejecuta scraping completo para una marca"""
     fecha = datetime.now().strftime("%Y-%m-%d")
-    print(f"🚀 Iniciando scraping para: {marca_a_buscar}")
+    print(f"[Scraper] Iniciando scraping para: {marca_a_buscar}")
     
     # Scraper Carrefour
     try:
         carrefour = await scrape_carrefour_marca(marca_a_buscar)
-        print(f"✅ Carrefour: {len(carrefour)} productos")
+        print(f"[OK] Carrefour: {len(carrefour)} productos")
     except Exception as e:
-        print(f"❌ Error Carrefour: {repr(e)}")
+        print(f"[ERROR] Carrefour: {repr(e)}")
         carrefour = []
     
     await asyncio.sleep(3)
@@ -47,12 +47,12 @@ async def scrape_all(marca_a_buscar):
     
     for nombre_scraper, r in zip(nombres_scrapers, resultados_otros):
         if isinstance(r, Exception):
-            print(f"❌ Error {nombre_scraper}: {repr(r)}")
+            print(f"[ERROR] {nombre_scraper}: {repr(r)}")
             datos_otros.append([])
         elif r is None:
             datos_otros.append([])
         else:
-            print(f"✅ {nombre_scraper}: {len(r)} productos")
+            print(f"[OK] {nombre_scraper}: {len(r)} productos")
             datos_otros.append(r)
     
     coope, coto, dia, disco, vea = datos_otros
@@ -63,12 +63,12 @@ async def scrape_all(marca_a_buscar):
     # Verificar que tenemos productos
     total_productos = sum(len(d) for d in datos)
     if total_productos == 0:
-        print(f"⚠️ No se encontraron productos para '{marca_a_buscar}'")
+        print(f"[WARN] No se encontraron productos para '{marca_a_buscar}'")
         return
     
     # Obtener nombres únicos de productos
     nombres_unicos = sorted(set(p['nombre'] for r in datos for p in r))
-    print(f"📊 Total productos únicos: {len(nombres_unicos)}")
+    print(f"[Scraper] Total productos unicos: {len(nombres_unicos)}")
     
     # Crear DataFrame
     filas = []
@@ -99,7 +99,7 @@ async def scrape_all(marca_a_buscar):
     # Guardar archivo
     df_precios.to_csv(ruta_completa, index=False, encoding="utf-8")
     
-    print(f"📦 Archivo guardado: {ruta_completa}")
+    print(f"[Scraper] Archivo guardado: {ruta_completa}")
     
     # Resumen por supermercado
     supermercados = ["carrefour", "coope", "coto", "dia", "disco", "vea"]
@@ -121,13 +121,13 @@ async def main():
     if len(sys.argv) > 1:
         marcas_a_scrapear = [" ".join(sys.argv[1:])]
     
-    print(f"🎯 Scraping marcas: {', '.join(marcas_a_scrapear)}")
+    print(f"[Scraper] Marcas: {', '.join(marcas_a_scrapear)}")
     
     inicio_total = time.time()
     
     for i, marca in enumerate(marcas_a_scrapear, 1):
         print(f"\n{'='*50}")
-        print(f"🔍 MARCA {i}/{len(marcas_a_scrapear)}: {marca}")
+        print(f"[Scraper] MARCA {i}/{len(marcas_a_scrapear)}: {marca}")
         print(f"{'='*50}")
         
         inicio_marca = time.time()
@@ -136,19 +136,19 @@ async def main():
             await scrape_all(marca)
             fin_marca = time.time()
             tiempo_marca = fin_marca - inicio_marca
-            print(f"⏱️ Tiempo {marca}: {tiempo_marca:.1f}s")
+            print(f"[Scraper] Tiempo {marca}: {tiempo_marca:.1f}s")
             
             if i < len(marcas_a_scrapear):
                 await asyncio.sleep(5)
                 
         except Exception as e:
-            print(f"❌ Error procesando '{marca}': {repr(e)}")
+            print(f"[ERROR] procesando '{marca}': {repr(e)}")
             continue
     
     fin_total = time.time()
     tiempo_total = fin_total - inicio_total
-    print(f"\n🏁 PROCESO TERMINADO")
-    print(f"⏱️ Tiempo total: {tiempo_total:.1f}s ({tiempo_total/60:.1f}min)")
+    print(f"\n[Scraper] PROCESO TERMINADO")
+    print(f"[Scraper] Tiempo total: {tiempo_total:.1f}s ({tiempo_total/60:.1f}min)")
 
 if __name__ == "__main__":
     asyncio.run(main())

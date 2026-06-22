@@ -1,5 +1,18 @@
+import re
 import asyncio
 from playwright.async_api import async_playwright
+
+_NOTCO_RE = re.compile(
+    r'\bnot(?:co|milk|burger|burguer|mila|chicken|chorixo|protein|cream|cheese|salxicha|creamcheese)\b'
+    r'|\bnot\s+(?:milk|burger|mila|chicken|chorixo|protein|cream|cheese|co\b)',
+    re.IGNORECASE
+)
+
+def _es_producto_de_marca(nombre: str, marca: str) -> bool:
+    if marca.lower() == "not":
+        return bool(_NOTCO_RE.search(nombre))
+    patron = re.compile(r'\b' + re.escape(marca), re.IGNORECASE)
+    return bool(patron.search(nombre))
 
 async def scrape_carrefour_marca(marca: str):
     base_url = f"https://www.carrefour.com.ar/{marca}?_q={marca}&map=ft&page={{}}"
@@ -30,11 +43,10 @@ async def scrape_carrefour_marca(marca: str):
         page.set_default_timeout(15000)
 
         current_page = 1
-        max_pages = 10  # Límite de seguridad
-        
-        while current_page <= max_pages:
+
+        while True:
             url = base_url.format(current_page)
-            print(f"\n🌐 Visitando página {current_page}: {url}")
+            print(f"\n[Carrefour] Visitando pagina {current_page}: {url}")
             
             try:
                 # Navegación simple sin networkidle
@@ -42,14 +54,14 @@ async def scrape_carrefour_marca(marca: str):
                 await asyncio.sleep(3)
                 
             except Exception as e:
-                print(f"❌ Error cargando página {current_page}: {e}")
+                print(f"[Carrefour] Error cargando pagina {current_page}: {e}")
                 break
             
             # Intentar encontrar la galería
             try:
                 await page.wait_for_selector("div.valtech-carrefourar-search-result-3-x-gallery", timeout=15000)
             except:
-                print("❌ Galería no encontrada")
+                print("[Carrefour] Galeria no encontrada, fin del scraping")
                 break
 
             # Realizar scroll suave
@@ -99,11 +111,9 @@ async def scrape_carrefour_marca(marca: str):
                     nombre_producto = name.lower()
                     marca_buscada = marca.lower()
                     
-                    should_include = False
-                    if marca_buscada in nombre_producto:
-                        should_include = True
-                    elif marca_buscada == "felices las vacas" and "jogurtti" in nombre_producto:
-                        should_include = True
+                    should_include = _es_producto_de_marca(name, marca)
+                    if not should_include and marca.lower() == "felices las vacas":
+                        should_include = "jogurtti" in name.lower()
                     
                     if should_include and name not in seen_product_names:
                         seen_product_names.add(name)
@@ -123,9 +133,9 @@ async def scrape_carrefour_marca(marca: str):
 if __name__ == "__main__":
     marca = "not"
     resultados = asyncio.run(scrape_carrefour_marca(marca))
-    print(f"\n🔎 Se encontraron {len(resultados)} productos para '{marca}':")
+    print(f"\nSe encontraron {len(resultados)} productos para '{marca}':")
     
     for i, prod in enumerate(resultados, 1):
         print(f"{i:2d}. {prod['nombre']}")
-        print(f"    💰 {prod['precio']}")
+        print(f"    {prod['precio']}")
         print("-" * 40)

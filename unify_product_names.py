@@ -510,11 +510,10 @@ for filename in os.listdir(RAW_DATA_PATH):
     elif "_vegetalex.csv" in filename:
         unification_map = unification_map_vegetalex
     else:
-        print(f"⚠️ No se encontró un 'unification_map' para el archivo: {filename}")
+        print(f"[WARN] No se encontro un 'unification_map' para el archivo: {filename}")
         continue
 
     try:
-        # Ejecutar la función de unificación y guardar en Cleaned
         unify_products(
             input_path,
             CLEANED_DATA_PATH,
@@ -522,12 +521,11 @@ for filename in os.listdir(RAW_DATA_PATH):
             SUPERMARKET_COLUMNS,
             unification_map
         )
-        print(f"✅ Unificado: {filename}")
+        print(f"[OK] Unificado: {filename}")
 
-        # Mover el CSV procesado a Used
         dest_path = os.path.join(USED_DATA_PATH, filename)
-        os.rename(input_path, dest_path)
-        print(f"📦 Archivo movido a Used: {dest_path}")
+        os.replace(input_path, dest_path)
+        print(f"[OK] Archivo movido a Used: {dest_path}")
 
     except Exception as e:
-        print(f"❌ Error procesando {filename}: {e}")
+        print(f"[ERROR] procesando {filename}: {e}")

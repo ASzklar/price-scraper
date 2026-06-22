@@ -26,7 +26,7 @@ SUPER_RENAMES = {
 
 # -------------------- Carga y cache de datos --------------------
 @st.cache_data
-def load_data(filenames):
+def load_data(filenames, _mtimes=None):
     dfs = []
     for fp in filenames:
         df = pd.read_csv(fp, parse_dates=['fecha'])
@@ -40,7 +40,9 @@ def load_data(filenames):
     return df
 
 file_list = sorted(glob.glob("Data/Cleaned/*.csv"))
-df = load_data(filenames=file_list)
+# Incluir mtime en la clave de cache para invalidar cuando cambia el contenido
+mtimes = tuple(os.path.getmtime(f) for f in file_list)
+df = load_data(filenames=tuple(file_list), _mtimes=mtimes)
 
 # Obtener la fecha más reciente en el DataFrame
 ultima_fecha = df['fecha'].max().strftime("%d-%m-%Y")
@@ -114,7 +116,7 @@ pivot = df_latest.pivot_table(
     values=SUPERS,
     aggfunc='first'
 )
-pivot['Promedio histórico'] = df_latest.set_index('Producto')['avg_precio']
+pivot['Promedio histórico'] = df_latest.groupby('Producto')['avg_precio'].first()
 pivot.index.name = "Producto"
 pivot = pivot.rename(columns=SUPER_RENAMES)
 
@@ -160,10 +162,11 @@ df_long_30 = df_ultimos_30.melt(
 
 df_prod = df_long_30[df_long_30['Producto'] == producto_sel]
 
-chart_df = df_prod.pivot(
+chart_df = df_prod.pivot_table(
     index='fecha',
     columns='supermercado',
-    values='precio'
+    values='precio',
+    aggfunc='mean'
 )
 st.line_chart(chart_df)
 

@@ -1,17 +1,43 @@
+import re
 import asyncio
 from playwright.async_api import async_playwright
+
+_NOTCO_RE = re.compile(
+    r'\bnot(?:co|milk|burger|burguer|mila|chicken|chorixo|protein|cream|cheese|salxicha|creamcheese)\b'
+    r'|\bnot\s+(?:milk|burger|mila|chicken|chorixo|protein|cream|cheese|co\b)',
+    re.IGNORECASE
+)
+
+def _es_producto_de_marca(nombre: str, marca: str) -> bool:
+    if marca.lower() == "not":
+        return bool(_NOTCO_RE.search(nombre))
+    patron = re.compile(r'\b' + re.escape(marca), re.IGNORECASE)
+    return bool(patron.search(nombre))
 
 async def scrape_dia(marca):
     url = f"https://diaonline.supermercadosdia.com.ar/{marca.lower()}?_q={marca}&map=ft"
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/114.0.0.0 Safari/537.36"
-        ))
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled", "--no-sandbox"]
+        )
+        context = await browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            viewport={"width": 1280, "height": 800},
+            locale="es-AR",
+            extra_http_headers={
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept-Language": "es-AR,es;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+            }
+        )
         page = await context.new_page()
-        await page.goto(url)
+        await page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
 
         viewport_height = await page.evaluate("window.innerHeight")
         scroll_height = await page.evaluate("document.body.scrollHeight")
@@ -32,10 +58,8 @@ async def scrape_dia(marca):
             nombre = (await productos[i].inner_text()).strip()
             precio = (await precios[i].inner_text()).strip()
 
-            # Filtro condicional solo para "felices las vacas"
-            if marca.lower() == "felices las vacas":
-                if "felices las vacas" not in nombre.lower():
-                    continue  # Ignorar producto que no menciona la marca
+            if not _es_producto_de_marca(nombre, marca):
+                continue
 
             all_productos.append({"nombre": nombre, "precio": precio})
 

@@ -1,62 +1,72 @@
-import asyncio
-from playwright.async_api import async_playwright
+import json
+from curl_cffi import requests
 
-async def scrape_disco(busqueda, max_pages=5):
-    url = f"https://www.disco.com.ar/{busqueda}?_q={busqueda}&map=ft"
+HEADERS = {
+    "Accept": "application/json",
+    "Accept-Language": "es-AR,es;q=0.9",
+    "Referer": "https://www.disco.com.ar/",
+}
+
+def _formatear_precio(valor: float) -> str:
+    entero = int(valor)
+    decimales = round((valor - entero) * 100)
+    entero_fmt = f"{entero:,}".replace(",", ".")
+    return f"${entero_fmt},{decimales:02d}"
+
+def _fetch_page(termino: str, desde: int, hasta: int) -> list:
+    url = (
+        f"https://www.disco.com.ar/api/catalog_system/pub/products/search"
+        f"?ft={requests.utils.quote(termino)}&_from={desde}&_to={hasta}"
+    )
+    resp = requests.get(url, headers=HEADERS, impersonate="chrome124", timeout=20)
+    resp.raise_for_status()
+    return resp.json()
+
+async def scrape_disco(busqueda: str, max_pages: int = 5):
     productos = []
+    page_size = 50
+    termino_lower = busqueda.lower()
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
-        await page.goto(url)
-        await page.wait_for_selector("a.vtex-product-summary-2-x-clearLink", timeout=40000)
+    for pagina in range(max_pages):
+        desde = pagina * page_size
+        hasta = desde + page_size - 1
+        try:
+            data = _fetch_page(busqueda, desde, hasta)
+        except Exception as e:
+            print(f"[Disco] Error en pagina {pagina + 1}: {e}")
+            break
 
-        for pagina in range(1, max_pages + 1):
-            previous_height = 0
-            while True:
-                await page.evaluate("window.scrollBy(0, 1000)")
-                await asyncio.sleep(1)
-                current_height = await page.evaluate("document.body.scrollHeight")
-                if current_height == previous_height:
-                    break
-                previous_height = current_height
+        for item in data:
+            brand = item.get("brand", "")
+            if termino_lower not in brand.lower():
+                continue
 
-            productos_raw = await page.query_selector_all("a.vtex-product-summary-2-x-clearLink")
-            for producto in productos_raw:
-                nombre_elem = await producto.query_selector("span.vtex-product-summary-2-x-productBrand")
-                nombre = (await nombre_elem.inner_text()).strip() if nombre_elem else ""
+            nombre = item.get("productName", "").strip()
+            precio_val = None
+            items = item.get("items", [])
+            if items:
+                sellers = items[0].get("sellers", [])
+                if sellers:
+                    offer = sellers[0].get("commertialOffer", {})
+                    if offer.get("AvailableQuantity", 0) > 0:
+                        precio_val = offer.get("Price")
 
-                if busqueda.lower() not in nombre.lower():
-                    continue
-
-                precio_elem = await producto.query_selector("#priceContainer")
-                if precio_elem:
-                    precio = (await precio_elem.inner_text()).strip()
-                else:
-                    precio = "Sin precio"
-
+            if precio_val is not None:
                 productos.append({
                     "nombre": nombre,
-                    "precio": precio
+                    "precio": _formatear_precio(precio_val),
                 })
 
-            siguiente_pagina_num = pagina + 1
-            boton_siguiente = await page.query_selector(f'button[value="{siguiente_pagina_num}"]')
-
-            if boton_siguiente:
-                await boton_siguiente.click()
-                await page.wait_for_timeout(4000)
-                await page.wait_for_selector("a.vtex-product-summary-2-x-clearLink", timeout=40000)
-            else:
-                break
-
-        await browser.close()
+        print(f"[Disco] Pagina {pagina + 1}: {len(data)} resultados de API")
+        if len(data) < page_size:
+            break
 
     return productos
 
 if __name__ == "__main__":
+    import asyncio
     marca = "Not"
     resultados = asyncio.run(scrape_disco(marca))
-    print(f"Se encontraron {len(resultados)} productos para la marca '{marca}':\n")
+    print(f"\nSe encontraron {len(resultados)} productos para '{marca}':\n")
     for i, prod in enumerate(resultados, 1):
-        print(f"{i}. {prod['nombre']} - Precio: {prod['precio']}")
+        print(f"{i:2d}. {prod['nombre']} - {prod['precio']}")
