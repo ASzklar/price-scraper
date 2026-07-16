@@ -26,7 +26,7 @@ SUPER_RENAMES = {
 
 # -------------------- Carga y cache de datos --------------------
 @st.cache_data
-def load_data(filenames, _mtimes=None):
+def load_data(filenames, mtimes=None):
     dfs = []
     for fp in filenames:
         df = pd.read_csv(fp, parse_dates=['fecha'])
@@ -42,7 +42,7 @@ def load_data(filenames, _mtimes=None):
 file_list = sorted(glob.glob("Data/Cleaned/*.csv"))
 # Incluir mtime en la clave de cache para invalidar cuando cambia el contenido
 mtimes = tuple(os.path.getmtime(f) for f in file_list)
-df = load_data(filenames=tuple(file_list), _mtimes=mtimes)
+df = load_data(filenames=tuple(file_list), mtimes=mtimes)
 
 # Obtener la fecha más reciente en el DataFrame
 ultima_fecha = df['fecha'].max().strftime("%d-%m-%Y")
@@ -124,13 +124,28 @@ pivot = pivot.rename(columns=SUPER_RENAMES)
 cols_supers = list(SUPER_RENAMES.values())
 cols_supers_presentes = [col for col in cols_supers if col in pivot.columns]
 
-styled = (
-    pivot
-      .style
-      .format("{:.2f}")
-      .highlight_max(axis=1, subset=cols_supers_presentes, color='crimson')
-      .highlight_min(axis=1, subset=cols_supers_presentes, color='forestgreen')
-)
+# st.dataframe no respeta na_rep de Styler.format para celdas nulas (siempre
+# muestra "None"), asi que se formatea a texto antes y el resaltado se calcula
+# aparte sobre los valores numéricos originales.
+def resaltar_fila(fila):
+    estilos = pd.Series('', index=fila.index)
+    valores = pivot.loc[fila.name, cols_supers_presentes]
+    no_nulos = valores.dropna()
+    if no_nulos.empty:
+        return estilos
+    max_val, min_val = no_nulos.max(), no_nulos.min()
+    for col in cols_supers_presentes:
+        val = valores[col]
+        if pd.isna(val):
+            continue
+        if val == max_val:
+            estilos[col] = 'background-color: crimson'
+        if val == min_val:
+            estilos[col] = 'background-color: forestgreen'
+    return estilos
+
+pivot_texto = pivot.map(lambda x: '-' if pd.isna(x) else f'{x:,.2f}')
+styled = pivot_texto.style.apply(resaltar_fila, axis=1)
 
 st.dataframe(styled, use_container_width=True)
 
@@ -203,4 +218,3 @@ for i, (_, row) in enumerate(opp.iterrows()):
             value=f"${row['min_precio']:,.0f}",
             delta=f"-{row['ahorro_pct']:.0%}")
         st.caption(row['super_min'])
-        
