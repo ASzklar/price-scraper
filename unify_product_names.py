@@ -20,11 +20,11 @@ def parse_price(price):
     except ValueError:
         return np.nan
 
-def unify_products(input_filepath, output_directory, product_column, supermarket_columns, unification_map):
+def unify_products(input_filepath, output_directory, product_column, supermarket_columns, unification_map, excluidos=None):
     # Extract brand and date from the input filename
     filename = os.path.basename(input_filepath)
     match = re.match(r'precios_async_(\d{4}-\d{2}-\d{2})_(\w+)\.csv', filename)
-    
+
     if not match:
         print(f"Error: El nombre del archivo de entrada '{filename}' no sigue el formato esperado (precios_async_AAAA-MM-DD_marca.csv).")
         return
@@ -39,7 +39,10 @@ def unify_products(input_filepath, output_directory, product_column, supermarket
     df = pd.read_csv(input_filepath)
 
     # Add 'fecha' column
-    df['fecha'] = date_str 
+    df['fecha'] = date_str
+
+    if excluidos:
+        df = df[~df[product_column].isin(excluidos)]
 
     reverse_unification_map = {}
     for canonical_name, variants in unification_map.items():
@@ -126,12 +129,14 @@ unification_map_not = {
         'Medallón relleno espinaca Not chicken 240 g.',
         'Medallones Notco Not Chicken Crispy Rellenos Espinaca X2 240grs',
         'Notmila Crispy Rellena Espinaca 240g (2u)',
+        'NotMila Crispy Rellena Espinaca 240 Gr.',
     ],
     'Not Chicken Relleno Napolitana 240g': [
         'Alimento A Base De Plantas Relleno Napolitana Not Chiken 240g',
         'Medallones Notco Not Chicken Crispy Rellenas Napolitanas X2 0.24kgs',
         'Not Chicken Crispy The Not Co Rellena Napolitana 240 Gr',
         'Medallón Not chicken rellena flow pack 2 uni',
+        'Notmila Crispy Rellena Napolitana 240g (2u)',
     ],
     'Not Chicken Spicy 250g': [
         'Alimento A Base De Plantas Spicy Not Chicken 250g',
@@ -250,6 +255,7 @@ unification_map_not = {
         'Medallón NotBurger Quick NotCo 130 Gr.',
         'Medallón Notburger Quick Notco 130g (2u)',
         'Hamburguesa Vegana Quick x 2 Un 130 Grs Notburguer',
+        'Medallon NotBurger Quick NotCo 130 Gr.',
     ],
     'Not Chicken Mila con Semillas 220g': [
         'Notchicken Mila Notco Con Semillas 220grs',
@@ -275,6 +281,7 @@ unification_map_not = {
         'Notco Not Salxicha X5 250grs',
         'Salchicha de planta Not Salxicha 5 uni',
         'Salchicha Vegana Precocido x 5 Un 250 Grs Notsalxicha',
+        'NOTSALXICHA 250g (5u)',
     ],
     'Not Ice Cream Paleta Chocolate Blanco 4x240g': [
         'Paletas Heladas Chocolate Blanco 4 Un X 240 Gr Not Icecream',
@@ -315,6 +322,7 @@ unification_map_not = {
     'Not Mila Chicken 220g': [
         'Notmila Chicken 220g (2u)',
         'NotMila Chicken 220 Gr.',
+        'Not Mila Chicken 220 Gr.',
     ],
     'Not Milk Avena 1L': [
         'Bebida Vegetal Avena X 1 L Not Milk',
@@ -325,6 +333,7 @@ unification_map_not = {
     'Not Milk Original 1L': [
         'Leche plant based Not Milk original tetra 1lt',
         'Bebida Vegetal NOT MILK Original X 1 Lt',
+        'Bebida Vegetal Original X 1 L Not Milk',
     ],
     'Not Protein Bar Chocolate Brownie 45g': [
         'Not Protein Bar Chocolate Brownie 45g',
@@ -337,12 +346,14 @@ unification_map_not = {
         'Barra de Proteína NotCo Crunchy Sabor Choco Lemon 35 Grs',
         'Notprotein\xa0bar Crunchy Choco-lemon X 35 Grs Notco',
         'Barra proteíca Crunchy Chocolemon Notprotein 35 grs',
+        'Barra proteica Crunchy chocolemon notprotein 35 grs',
     ],
     'Not Protein Bar Crunchy Chocomaní 35g': [
         'Not Protein Bar Crunchy CHOCOMANI 35g',
         'Barra De Proteina Crunchy Chocomani X 35 Grs Notprotein\xa0bar',
         'Suplemento Alimenticio Crunchy Sabor Choco Maní 35 Grs Notprotein Bar',
         'Barra proteica NotProtein Crunchy Chocomani 35 grs',
+        'Barra proteica NotProtein crunchy chocomani 35 grs',
     ],
     'Not Protein Bar Almond Salted Caramel 45g': [
         'Not Protein Bar Almond Salted Caramel 45g',
@@ -363,6 +374,26 @@ unification_map_not = {
     'Not Protein Bar Crunchy Netflix 35g': [
         'Barra proteíca Notprotein Crunchy Netflix 35 grs',
         'Barra De Proteina Notprotein\xa0bar Crunchy Netflix X 35 Grs Not Co',
+        'Barra proteica Notprotein crunchy netflix 35 grs',
+    ],
+    'Not Ice Cream Paleta Chocolate con Maní 240g': [
+        'Paleta Noticecream Chocolate Con Mani 240g',
+    ],
+    'Not Meat Picada 400g': [
+        'Notmeat Picada 400g',
+        'Alimento A Base De Plantas Picada Not Meat 400g',
+    ],
+    'Not Ice Cream Crema Americana Pack 300g': [
+        'Helado Crema Americana Pack 300 Gr Not Ice Cream Not Co',
+    ],
+    'Not Ice Cream Tableta Dulce de Leche 300g': [
+        'Tabletas Heladas Dulce De Leche 300 Gr Not Icecream',
+    ],
+    'Empanadas Simil Queso y Cebolla NotCo 4uni': [
+        'Empanadas simil de queso y cebolla NotCo 4 uni',
+    ],
+    'Dulce de Leche NotCo Pote 250g': [
+        'Dulce de leche Notco en pote 250 g.',
     ]
 }
 
@@ -496,6 +527,8 @@ unification_map_felices_las_vacas = {
         'Alimento A Base De Almendra Untable Tradicional 200 Gr Felices Las Vacas',
         'Untabla clásico cremoso Felices las vacas 200 g.',
         'Producto Untable A Base De Almendras Felices Las Vacas Clásico 200grs',
+        'Queso Untable de Almendras Premium Sabor Tradicional 200 Grs Felices Las Vacas',
+        'Alim Alm Clas Felices Las Vacas 200g',
     ],
     'Cremoso Vegano Felices Las Vacas 500g': [
         'Cremoso vegano Felices Las Vacas 500 g.',
@@ -524,6 +557,7 @@ unification_map_felices_las_vacas = {
     ],
     'Yogur Almendras Vainilla Felices Las Vacas 170g': [
         'Jogurtti vainilla base de almendras Felices las vacas 170 g.',
+        'Yogurt Vegano Sabor Vainilla 170 Grs Felices Las Vacas',
     ],
     'Medallón Arveja Chickenvil Party Felices Las Vacas 2uni': [
         'Medallón de arveja Felices las Vacas chickenvil party 2 uni',
@@ -557,10 +591,13 @@ unification_map_felices_las_vacas = {
     'Postre Plant Based Chocolate Felices Las Vacas 125g': [
         'Postre plant ba de chocolate Felices las Vacas 125 g.',
         'Postrecito Felices Las Vacas Sabor Chocolate 125grs',
+        'Postrecito Sabor Chocolate Felices Las Vacas 125 Grs',
+        'Postrecito Sabor Chocolate Vegano Felices Las Vacas',
     ],
     'Postre Plant Based Dulce de Leche Felices Las Vacas 125g': [
         'Postre plant bas de dulce de leche Felices las Vacas 125 g.',
         'Postrecito Felices Las Vacas Sabor Dulce De Leche 125grs',
+        'Postrecito Sabor Dulce De Leche Vegano Felices Las Vacas',
     ],
     'Queso Vegano Cheddar Fetas Felices Las Vacas 150g': [
         'Queso Vegano Cheddar En Fetas Felices Las Vacas 150g',
@@ -572,6 +609,7 @@ unification_map_felices_las_vacas = {
     ],
     'Queso Vegano Hebras Reggianito Felices Las Vacas 150g': [
         'Queso Vegano En Hebras Reggianito Felices Las Vacas 150g',
+        'Queso En Hebras Sabor Reggianito Vegano Felices Las Vacas 150g',
     ],
     'Queso Almendra Oliva Muzzoliva Felices Las Vacas 500g': [
         'Queso Vegano Muzzoliva Felices Las Vacas 500g',
@@ -580,9 +618,11 @@ unification_map_felices_las_vacas = {
     'Yogur Plant Based Frutos Rojos Felices Las Vacas 125g': [
         'Yogur plant bas colchón de frutos rojos Felices las Vacas 125 g.',
         'Yogur plant bas colchón de frutos de bosque Felices las Vacas 125 g.',
+        'Yogurt Con Colchon De Frutos Del Bosque Vegano Felices Las Vacas 125g',
     ],
     'Yogur Plant Based Mango Maracuyá Felices Las Vacas 125g': [
         'Yogur plant bas colchón mango y maracuya Felices las Vacas 125 g.',
+        'Yogurt Con Colchon De Maracuya Vegano Felices Las Vacas 125g',
     ],
     'Alfajor Chocolate Felices Las Vacas 60g': [
         'Alfajor Felices Las Vacas de chocolate 60 g.',
@@ -610,7 +650,120 @@ unification_map_felices_las_vacas = {
     ],
     'Granola Frutos Secos Felices Las Vacas 300g': [
         'Granola frutos secos Felices las Vacas 300 grs',
+    ],
+    'Bocadito Pistacho con Chocolate Felices Las Vacas 22g': [
+        'Bocaditos Felices las Vacas de pistacho con chocolate 22 grs',
+    ],
+    'Yogur Almendras Frutilla Felices Las Vacas 170g': [
+        'Yogurt Vegano Sabor Frutilla 170 Grs Felices Las Vacas',
+        'Jogurtti de frutilla con base de almendras Felices las Vacas 170 g.',
+    ],
+    'Yogur Almendras Durazno Felices Las Vacas 170g': [
+        'Jogurtti a base de almendras sabor durazno Felices las vacas 170 grs',
+        'Yogurt Vegano Sabor Durazno 170 Grs Felices Las Vacas',
     ]
+}
+
+# Productos que se colaron en el scraping antes de que los scrapers tuvieran
+# filtro de marca (21/06/2026) y no pertenecen a ninguna de las 3 marcas —
+# se excluyen directamente al procesar en vez de intentar unificarlos.
+PRODUCTOS_EXCLUIDOS_NOT = {
+    'Body Splash Go To Be Chill Not Boring 250 ml',
+    'Body Splash Go To Be Chill Not Boring 250 ml.',
+    'Body splash Chill not boring GO TO BE 250ml',
+    'Crema corporal Chill Not Boring GO TO BE 240g',
+    'Crema corporal Go To Be Chill Not Boring 340 ml',
+    'Crema corporal Go To Be Chill Not Boring 340 ml.',
+    'Crema corporal Go To Be manteca de karité Chill Not Boring 240 ml',
+    'Crema corporal Go To Be manteca de karité Chill Not Boring 240 ml.',
+    'Crema corporal chill not boring GO TO BE 340g',
+    'Kinoto 1kgs',
+    'Notebook ASUS Vivobook Go 14 E410MA-BV1181W Intel Celeron N4020 Gráficos Intel UHD 600',
+    'Notebook Gad-C3 Gadnic 141 I3 8GB DDR4 sodimm 512 GB SSD',
+    'Notebook Gadnic 14 Pulgadas Intel Celeron N4020 RAM 4GB SSD 128GB Cámara Frontal',
+    'Notebook Gadnic 14 Pulgadas Intel Celeron N4500 RAM 4GB SSD 128GB Cámara Frontal Con Soporte',
+    'Notebook Gadnic 14 Pulgadas Intel Core I3-1215U 8GB RAM 512GB SSD Alderlake',
+    'Notebook Gadnic G3 Intel Celeron 4GB RAM 128GB SSD 14.1"',
+    'Notebook Lenovo V15 G2 intel core I7 Ram 8Gb SSD 256GB FreeDOS 15.6',
+    'Notebook Samsung Galaxy Book 3 15,6" i3 8gb Ram 256gb 120hz Silver',
+    'Notebook Samsung Galaxy Book4 15 6 Intel® Core™ i3 RAM 8 GB',
+    'Notebook Samsung Galaxy Book4 15 6 Intel® Core™ i5 RAM 16 GB',
+    'Notebook Samsung Galaxy Book4 15 6 Intel® Core™ i7 RAM 16 GB',
+    'Pacl locion + crema Chill Not Boring GO TO BE',
+    'Resaltador Sharpie S.Note Colores Varios',
+    'Set Chill Not Boring Go To Be body splash + crema corporal + shower gel',
+    'Set Chill Not Boring Go To Be body splash + crema corporal + shower gel.',
+}
+PRODUCTOS_EXCLUIDOS_VEGETALEX = {
+    'Aceite De Girasol Cooperativa 1500cm3',
+    'Atún Cooperativa Trozos En Aceite Y Agua 160grs',
+    'Cerveza Roja Patagonia Amber Lager 473cm3',
+    'Jabón Líquido Zorro Para Diluir Fragancia Duradera 500cm3',
+    'Leche Chocolatada Cindor 1000cm3',
+    'Medallon NotBurger Quick NotCo 130 Gr.',
+    'Medallón NotBurger Parrillera NotCo 220 Gr.',
+    'Medallón NotBurger Quick NotCo 130 Gr.',
+    'NotChicken Nuggets 300 Gr.',
+    'NotMila Chicken 220 Gr.',
+    'NotMila Crispy Rellena Espinaca 240 Gr.',
+    'NotMila Meat 220 Gr.',
+    'Protector Solar Dermaglós Fps 30 200cm3',
+    'aceite de girasol legítimo 1500cm3',
+    'agua mineral sin gas eco de los andes 2000cm3',
+    'alimento en polvo a base de azúcar y cacao chocolino 180grs',
+    'aperitivo pronto shake lata 473cm3',
+    'aperitivo sin alcohol terma limón cero 1750cm3',
+    'aperitivo sin alcohol terma serrano 1750cm3',
+    'arvejas cooperativa al natural lata 300grs',
+    'atún cooperativa al natural 160grs',
+    'bolsas de residuos primer precio negra 45x60cm 10uni',
+    'café torrado instantáneo la virginia clásico doypack 170grs',
+    'café torrado instantáneo la virginia suave doypack 170grs',
+    'caldo en cubos maggi gallina  114grs',
+    'caldo en cubos maggi verduras x12 114grs',
+    'cerveza budweiser música lata 473cm3',
+    'cerveza sin alcohol quilmes 0.0% lata 473cm3',
+    'crema para peinar fructis hair food manteca de cacao  250cm3',
+    'detergente cif bioactive lima 500cm3',
+    'detergente cif bioactive limón 500cm3',
+    'detergente héroe ultra limón 500cm3',
+    'detergente héroe ultra manzana 500cm3',
+    'dulce de leche repostero milkaut 400grs',
+    'espumante novecento extra dulce 750cm3',
+    'espumante salentein brut nature 750cm3',
+    'fideos primer precio mostachol 500grs',
+    'fideos primer precio spaghetti 500grs',
+    'fideos primer precio tallarines 500grs',
+    'fideos primer precio tirabuzón 500grs',
+    'fideos primer precio ñoquis 500grs',
+    'flan la serenisima clásico vainilla con caramelo 95grs',
+    'galletitas crackers primer precio sándwich pack familiar x3 303grs',
+    'jabón de tocador primer precio floral tricolor x3 270grs',
+    'jugo cepita durazno delicioso botella 1500cm3',
+    'jugo cepita naranja tentación botella 1500cm3',
+    'lechuga arrepollada 1kgs',
+    'limpiador multiuso para diluir primer precio lavanda 150cm3',
+    'naranja de jugo 1kgs',
+    'oblea terrabusi rodhesia bañada 88grs',
+    'papel higiénico campanita soft simple hoja  120mts',
+    'pasta dental kolynos frescura 90grs',
+    'pañales huggies classic xxxg 28uni',
+    'pañales huggies talle g 36uni',
+    'pañales huggies talle xg 30uni',
+    'pañales huggies talle xxg 30uni',
+    'protector solar dermaglós fps 50 200cm3',
+    'protectores diarios cooperativa anatómicos 50uni',
+    'puré de tomate alco 520grs',
+    'rollo de cocina cooperativa 150panos',
+    'sidra real blanca 750cm3',
+    'sidra reino castilla etiqueta blanca 710cm3',
+    'sidra reino de castilla pet 920cm3',
+    'toallitas femeninas cooperativa normal con alas 16uni',
+    'vinagre de alcohol cooperativa sin gluten 1000ml.',
+    'yerba mate andresito con palo 1000grs',
+    'yogur yogurisimo griego con granola pote 168grs',
+}
+PRODUCTOS_EXCLUIDOS_FELICES_LAS_VACAS = {
 }
 
 # --- Main execution ---
@@ -639,10 +792,13 @@ for filename in os.listdir(RAW_DATA_PATH):
     # Seleccionar el mapa de unificación según el nombre del archivo
     if "_not.csv" in filename:
         unification_map = unification_map_not
+        excluidos = PRODUCTOS_EXCLUIDOS_NOT
     elif "_felices_las_vacas.csv" in filename:
         unification_map = unification_map_felices_las_vacas
+        excluidos = PRODUCTOS_EXCLUIDOS_FELICES_LAS_VACAS
     elif "_vegetalex.csv" in filename:
         unification_map = unification_map_vegetalex
+        excluidos = PRODUCTOS_EXCLUIDOS_VEGETALEX
     else:
         print(f"[WARN] No se encontro un 'unification_map' para el archivo: {filename}")
         continue
@@ -653,7 +809,8 @@ for filename in os.listdir(RAW_DATA_PATH):
             CLEANED_DATA_PATH,
             PRODUCT_COLUMN,
             SUPERMARKET_COLUMNS,
-            unification_map
+            unification_map,
+            excluidos=excluidos,
         )
         print(f"[OK] Unificado: {filename}")
 

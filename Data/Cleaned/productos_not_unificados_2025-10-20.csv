@@ -11,7 +11,7 @@ fecha,producto_unificado,producto_representativo,carrefour,coope,coto,dia,disco,
 2025-10-20,Not Chicken Nuggets 300g,Notchicken Nuggets 300g,,,7639.0,,8450.0,7800.0
 2025-10-20,Not Chicken Relleno Champis 240g,Chicken Crispy Rellena Champis X 240 Gr Not Chicken,,,5715.0,,6300.0,
 2025-10-20,Not Chicken Relleno Espinaca 240g,Medallones Notco Not Chicken Crispy Rellenos Espinaca X2 0.24kgs,,6095.0,5715.0,,6300.0,5800.0
-2025-10-20,Not Chicken Relleno Napolitana 240g,Medallones Notco Not Chicken Crispy Rellenas Napolitanas X2 0.24kgs,,6095.0,,,,5800.0
+2025-10-20,Not Chicken Relleno Napolitana 240g,Medallones Notco Not Chicken Crispy Rellenas Napolitanas X2 0.24kgs,,6095.0,5715.0,,,5800.0
 2025-10-20,Not Chicken Spicy 250g,Formados Notchicken Spicy Bit Con Salsa Tabasco 250grs,,7290.0,7319.0,,,
 2025-10-20,Not Chicken Sticks 300g,Notchicken Sticks 300g,,7717.0,7639.0,,8350.0,7700.0
 2025-10-20,Not Chorixo 240g,Chorizo Vegano X 240 Gr Not Chorixo,,9120.0,8999.0,,8900.0,
@@ -26,4 +26,3 @@ fecha,producto_unificado,producto_representativo,carrefour,coope,coto,dia,disco,
 2025-10-20,Not Mila con Semillas 220g,Alimento A Base De Plantas Milanesas Con Semillas Not Mila 220g,,3561.6,4919.0,,,
 2025-10-20,Not Milk Avena 1L,Bebida Vegetal Avena X 1 L Not Milk,,,,,4312.5,
 2025-10-20,Not Protein Bar Crunchy Netflix 35g,Barra De Proteina Notprotein bar Crunchy Netflix X 35 Grs Not Co,,,,,1950.0,
-2025-10-20,Notmila Crispy Rellena Napolitana 240g (2u),Notmila Crispy Rellena Napolitana 240g (2u),,,5715.0,,,
