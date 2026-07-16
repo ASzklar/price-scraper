@@ -2,3 +2,7 @@
 Data/Raw/
 *.log
 *.zip
+notas/
+__pycache__/
+chatbot/.venv/
+chatbot/.env
