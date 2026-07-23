@@ -3,6 +3,6 @@ fuzzywuzzy==0.18.0
 numpy==2.3.1
 pandas==2.3.1
 playwright==1.53.0
-streamlit==1.47.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
+supabase>=2.0.0

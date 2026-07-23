@@ -6,3 +6,5 @@ notas/
 __pycache__/
 chatbot/.venv/
 chatbot/.env
+.env
+.env.local

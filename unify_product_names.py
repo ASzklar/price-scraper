@@ -20,7 +20,7 @@ def parse_price(price):
     except ValueError:
         return np.nan
 
-def unify_products(input_filepath, output_directory, product_column, supermarket_columns, unification_map, excluidos=None):
+def unify_products(input_filepath, output_directory, product_column, supermarket_columns, unification_map, excluidos=None) -> "pd.DataFrame | None":
     # Extract brand and date from the input filename
     filename = os.path.basename(input_filepath)
     match = re.match(r'precios_async_(\d{4}-\d{2}-\d{2})_(\w+)\.csv', filename)
@@ -89,6 +89,7 @@ def unify_products(input_filepath, output_directory, product_column, supermarket
         
         unified_df.to_csv(output_filepath, index=False)
         print(f"\nProceso de unificación completado. Resultados guardados en '{output_filepath}'.")
+        return unified_df
 
 # --- Unification Maps ---
 unification_map_not = {
@@ -768,6 +769,7 @@ PRODUCTOS_EXCLUIDOS_FELICES_LAS_VACAS = {
 
 # --- Main execution ---
 import os
+from datetime import date as _date
 
 PRODUCT_COLUMN = 'producto'
 SUPERMARKET_COLUMNS = ['carrefour', 'coope', 'coto', 'dia', 'disco', 'vea']
@@ -782,6 +784,11 @@ os.makedirs(RAW_DATA_PATH,     exist_ok=True)
 os.makedirs(CLEANED_DATA_PATH, exist_ok=True)
 os.makedirs(USED_DATA_PATH,    exist_ok=True)
 
+# Inserción en Supabase (solo si las variables de entorno están configuradas)
+_db_enabled = bool(os.environ.get('SUPABASE_URL') and os.environ.get('SUPABASE_KEY'))
+if _db_enabled:
+    from db import insert_precios
+
 # Recorrer todos los CSVs en la carpeta Raw
 for filename in os.listdir(RAW_DATA_PATH):
     if not (filename.endswith(".csv") and filename.startswith("precios_async_")):
@@ -789,22 +796,25 @@ for filename in os.listdir(RAW_DATA_PATH):
 
     input_path = os.path.join(RAW_DATA_PATH, filename)
 
-    # Seleccionar el mapa de unificación según el nombre del archivo
+    # Seleccionar el mapa de unificación y marca según el nombre del archivo
     if "_not.csv" in filename:
         unification_map = unification_map_not
         excluidos = PRODUCTOS_EXCLUIDOS_NOT
+        marca_slug = 'not'
     elif "_felices_las_vacas.csv" in filename:
         unification_map = unification_map_felices_las_vacas
         excluidos = PRODUCTOS_EXCLUIDOS_FELICES_LAS_VACAS
+        marca_slug = 'felices_las_vacas'
     elif "_vegetalex.csv" in filename:
         unification_map = unification_map_vegetalex
         excluidos = PRODUCTOS_EXCLUIDOS_VEGETALEX
+        marca_slug = 'vegetalex'
     else:
         print(f"[WARN] No se encontro un 'unification_map' para el archivo: {filename}")
         continue
 
     try:
-        unify_products(
+        unified_df = unify_products(
             input_path,
             CLEANED_DATA_PATH,
             PRODUCT_COLUMN,
@@ -813,6 +823,17 @@ for filename in os.listdir(RAW_DATA_PATH):
             excluidos=excluidos,
         )
         print(f"[OK] Unificado: {filename}")
+
+        # Insertar en Supabase si está configurado y la unificación produjo datos
+        if _db_enabled and unified_df is not None and not unified_df.empty:
+            match = re.match(r'precios_async_(\d{4}-\d{2}-\d{2})_', filename)
+            if match:
+                fecha = _date.fromisoformat(match.group(1))
+                filas = unified_df.rename(columns={'producto_unificado': 'producto_unificado'}).to_dict('records')
+                try:
+                    insert_precios(fecha, marca_slug, filas)
+                except Exception as db_err:
+                    print(f"[WARN] Error al insertar en DB: {db_err}")
 
         dest_path = os.path.join(USED_DATA_PATH, filename)
         os.replace(input_path, dest_path)

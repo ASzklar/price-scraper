@@ -34,7 +34,10 @@ jobs:
       - name: Run all supermarkets scraper
         run: python scrape_all_async_v2.py
 
-      - name: Normalize product names
+      - name: Normalize product names and upload to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: python unify_product_names.py
 
       - name: Commit & push generated CSVs
