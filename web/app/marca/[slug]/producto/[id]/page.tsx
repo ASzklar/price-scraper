@@ -107,7 +107,7 @@ export default function ProductoPage() {
                   width={48}
                 />
                 <Tooltip
-                  formatter={(v: number) => formatPrecio(v)}
+                  formatter={(v) => typeof v === 'number' ? formatPrecio(v) : String(v)}
                   labelFormatter={(l) => `Fecha: ${l}`}
                 />
                 <Legend />
