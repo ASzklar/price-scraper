@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Link from 'next/link'
+import ThemeProvider from './ThemeProvider'
+import ThemeToggle from './ThemeToggle'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -12,26 +14,34 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className={`${inter.className} bg-gray-50 text-gray-900 min-h-screen`}>
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
-            <Link href="/" className="font-bold text-lg text-green-700 hover:text-green-800">
-              🌱 Precios Veganos
-            </Link>
-            <nav className="flex gap-4 text-sm text-gray-600">
-              <Link href="/marca/not" className="hover:text-green-700">NotCo</Link>
-              <Link href="/marca/vegetalex" className="hover:text-green-700">Vegetalex</Link>
-              <Link href="/marca/felices_las_vacas" className="hover:text-green-700">Felices Las Vacas</Link>
-            </nav>
-          </div>
-        </header>
-        <main className="max-w-7xl mx-auto px-4 py-6">
-          {children}
-        </main>
-        <footer className="text-center text-xs text-gray-400 py-6 mt-8 border-t border-gray-100">
-          Datos actualizados diariamente · NotCo · Vegetalex · Felices Las Vacas
-        </footer>
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}})()`
+        }} />
+      </head>
+      <body className={`${inter.className} bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen`}>
+        <ThemeProvider>
+          <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
+            <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
+              <Link href="/" className="font-bold text-lg text-green-700 hover:text-green-800">
+                🌱 Precios Veganos
+              </Link>
+              <nav className="flex gap-4 text-sm text-gray-600 dark:text-gray-300">
+                <Link href="/marca/not" className="hover:text-green-700 dark:hover:text-green-400">NotCo</Link>
+                <Link href="/marca/vegetalex" className="hover:text-green-700 dark:hover:text-green-400">Vegetalex</Link>
+                <Link href="/marca/felices_las_vacas" className="hover:text-green-700 dark:hover:text-green-400">Felices Las Vacas</Link>
+              </nav>
+              <ThemeToggle />
+            </div>
+          </header>
+          <main className="max-w-7xl mx-auto px-4 py-6">
+            {children}
+          </main>
+          <footer className="text-center text-xs text-gray-400 py-6 mt-8 border-t border-gray-100 dark:border-gray-800">
+            Datos actualizados diariamente · NotCo · Vegetalex · Felices Las Vacas
+          </footer>
+        </ThemeProvider>
       </body>
     </html>
   )

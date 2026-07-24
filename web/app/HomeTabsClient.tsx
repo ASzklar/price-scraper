@@ -7,28 +7,11 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 import type { Oportunidad } from '@/lib/queries'
+import { SUPER_COLORS, SUPER_RENAMES } from '@/lib/constants'
 
 type Marca = 'not' | 'vegetalex' | 'felices_las_vacas'
 type Producto = { id: number; nombre: string }
 type PrecioMap = Record<number, Record<string, number>>
-
-const SUPER_COLORS: Record<string, string> = {
-  carrefour: '#2563eb',
-  coope: '#7c3aed',
-  coto: '#dc2626',
-  dia: '#d97706',
-  disco: '#059669',
-  vea: '#db2777',
-}
-
-const SUPER_RENAMES: Record<string, string> = {
-  carrefour: 'Carrefour',
-  coope: 'Cooperativa Obrera',
-  coto: 'Coto',
-  dia: 'Dia',
-  disco: 'Disco',
-  vea: 'Vea',
-}
 
 function formatPrecio(precio: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(precio)
@@ -154,8 +137,8 @@ function OportunidadesSection({ oportunidades }: { oportunidades: Oportunidad[] 
           key={op.productoId}
           className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 flex flex-col gap-2"
         >
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 leading-tight">{op.nombre}</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-gray-100 tabular-nums">
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight truncate" title={op.nombre}>{op.nombre}</p>
+          <p className="text-lg font-bold text-green-700 dark:text-green-400 tabular-nums">
             {formatPrecio(op.minPrecio)}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">{op.superMinimo}</p>

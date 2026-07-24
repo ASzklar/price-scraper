@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { SUPER_RENAMES } from './constants'
 
 export type Marca = 'not' | 'vegetalex' | 'felices_las_vacas'
 
@@ -120,15 +121,6 @@ export interface Oportunidad {
   minPrecio: number
   superMinimo: string
   ahorrosPct: number
-}
-
-const SUPER_RENAMES: Record<string, string> = {
-  carrefour: 'Carrefour',
-  coope: 'Cooperativa Obrera',
-  coto: 'Coto',
-  dia: 'Dia',
-  disco: 'Disco',
-  vea: 'Vea',
 }
 
 /** Top 5 oportunidades de ahorro. Recibe datos ya calculados para evitar queries duplicadas. */

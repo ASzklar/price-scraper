@@ -5,18 +5,10 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { MARCA_LABELS, type Marca } from '@/lib/queries'
+import { SUPER_COLORS, SUPER_RENAMES } from '@/lib/constants'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
-
-const SUPER_COLORS: Record<string, string> = {
-  carrefour: '#2563eb',
-  coope: '#7c3aed',
-  coto: '#dc2626',
-  dia: '#d97706',
-  disco: '#059669',
-  vea: '#0891b2',
-}
 
 function formatPrecio(v: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(v)
@@ -130,7 +122,7 @@ export default function ProductoPage() {
               Último precio disponible:{' '}
               <span className="font-semibold">{formatPrecio(latestSummary.precio)}</span>
               {' '}en{' '}
-              <span className="font-semibold capitalize">{latestSummary.super}</span>
+              <span className="font-semibold">{SUPER_RENAMES[latestSummary.super] ?? latestSummary.super}</span>
               , el {formatDateDMY(latestSummary.fecha)}
             </div>
           )}
@@ -177,7 +169,7 @@ export default function ProductoPage() {
               const ultimoValor = [...chartData].reverse().find(d => d[s] != null)?.[s]
               return (
                 <div key={s} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                  <div className="text-xs text-gray-400 dark:text-gray-500 capitalize mb-1">{s}</div>
+                  <div className="text-xs text-gray-400 dark:text-gray-500 mb-1">{SUPER_RENAMES[s] ?? s}</div>
                   <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {ultimoValor ? formatPrecio(ultimoValor) : '—'}
                   </div>

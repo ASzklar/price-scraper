@@ -2,15 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-
-const SUPER_RENAMES: Record<string, string> = {
-  carrefour: 'Carrefour',
-  coope: 'Cooperativa Obrera',
-  coto: 'Coto',
-  dia: 'Dia',
-  disco: 'Disco',
-  vea: 'Vea',
-}
+import { SUPER_RENAMES } from '@/lib/constants'
 
 function formatPrecio(precio: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(precio)
