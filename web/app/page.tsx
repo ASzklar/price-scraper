@@ -1,7 +1,7 @@
 import { getDateRange, getProductosByMarca, getUltimosPrecios, MARCA_LABELS, type Marca } from '@/lib/queries'
 import HomeTabsClient from './HomeTabsClient'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 const MARCAS: Marca[] = ['not', 'vegetalex', 'felices_las_vacas']
 const SUPERMERCADOS = ['carrefour', 'coope', 'coto', 'dia', 'disco', 'vea']
