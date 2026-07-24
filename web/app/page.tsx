@@ -1,4 +1,4 @@
-import { getDateRange, getProductosByMarca, getUltimosPrecios, getHistoricalAvg, getOportunidades, MARCA_LABELS, type Marca } from '@/lib/queries'
+import { getDateRange, getProductosByMarca, getUltimosPrecios, getHistoricalAvg, computeOportunidades, MARCA_LABELS, type Marca } from '@/lib/queries'
 import HomeTabsClient from './HomeTabsClient'
 
 export const dynamic = 'force-dynamic'
@@ -17,12 +17,12 @@ export default async function Home() {
 
   const brandsRaw = await Promise.all(
     MARCAS.map(async (marca) => {
-      const [productos, ultimos, historicalAvg, oportunidades] = await Promise.all([
+      const [productos, ultimos, historicalAvg] = await Promise.all([
         getProductosByMarca(marca),
         getUltimosPrecios(marca),
         getHistoricalAvg(marca),
-        getOportunidades(marca),
       ])
+      const oportunidades = computeOportunidades(productos, ultimos, historicalAvg)
 
       type PrecioMap = Record<number, Record<string, number>>
       const precioMap: PrecioMap = {}

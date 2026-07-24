@@ -73,7 +73,7 @@ export async function getUltimosPrecios(marca: Marca) {
   return data ?? []
 }
 
-/** Promedio histórico de precio por producto para una marca. Returns Record<productoId, avgPrecio> */
+/** Promedio histórico de precio por producto (últimos 90 días). Returns Record<productoId, avgPrecio> */
 export async function getHistoricalAvg(marca: Marca): Promise<Record<number, number>> {
   const { data: prods } = await supabase
     .from('dim_producto')
@@ -82,10 +82,22 @@ export async function getHistoricalAvg(marca: Marca): Promise<Record<number, num
   if (!prods || prods.length === 0) return {}
   const ids = prods.map((p: any) => p.id)
 
+  // Get fecha_ids for the last 90 days
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 90)
+  const cutoffStr = cutoff.toISOString().slice(0, 10)
+  const { data: fechas } = await supabase
+    .from('dim_fecha')
+    .select('id')
+    .gte('fecha', cutoffStr)
+  if (!fechas || fechas.length === 0) return {}
+  const fechaIds = fechas.map((f: any) => f.id)
+
   const { data } = await supabase
     .from('fact_precios')
     .select('producto_id, precio')
     .in('producto_id', ids)
+    .in('fecha_id', fechaIds)
   if (!data) return {}
 
   const sums: Record<number, { sum: number; count: number }> = {}
@@ -110,15 +122,21 @@ export interface Oportunidad {
   ahorrosPct: number
 }
 
-/** Top 5 oportunidades de ahorro: productos con mayor descuento vs promedio histórico */
-export async function getOportunidades(marca: Marca): Promise<Oportunidad[]> {
-  const [productos, ultimos, historicalAvg] = await Promise.all([
-    getProductosByMarca(marca),
-    getUltimosPrecios(marca),
-    getHistoricalAvg(marca),
-  ])
+const SUPER_RENAMES: Record<string, string> = {
+  carrefour: 'Carrefour',
+  coope: 'Cooperativa Obrera',
+  coto: 'Coto',
+  dia: 'Dia',
+  disco: 'Disco',
+  vea: 'Vea',
+}
 
-  // Build min price per product today
+/** Top 5 oportunidades de ahorro. Recibe datos ya calculados para evitar queries duplicadas. */
+export function computeOportunidades(
+  productos: { id: number; nombre: string }[],
+  ultimos: any[],
+  historicalAvg: Record<number, number>
+): Oportunidad[] {
   const minMap: Record<number, { precio: number; super_: string }> = {}
   for (const row of ultimos) {
     const prod = row.dim_producto as any
@@ -127,15 +145,6 @@ export async function getOportunidades(marca: Marca): Promise<Oportunidad[]> {
     if (!minMap[pid] || row.precio < minMap[pid].precio) {
       minMap[pid] = { precio: row.precio, super_: sup.nombre }
     }
-  }
-
-  const SUPER_RENAMES: Record<string, string> = {
-    carrefour: 'Carrefour',
-    coope: 'Cooperativa Obrera',
-    coto: 'Coto',
-    dia: 'Dia',
-    disco: 'Disco',
-    vea: 'Vea',
   }
 
   const oportunidades: Oportunidad[] = []
