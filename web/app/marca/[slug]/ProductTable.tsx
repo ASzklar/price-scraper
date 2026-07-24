@@ -46,7 +46,7 @@ export default function ProductTable({ slug, productos, precioMap, supermercados
         />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+      <div className="overflow-x-auto overflow-y-auto max-h-96 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
