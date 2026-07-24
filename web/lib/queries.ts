@@ -73,6 +73,90 @@ export async function getUltimosPrecios(marca: Marca) {
   return data ?? []
 }
 
+/** Promedio histórico de precio por producto para una marca. Returns Record<productoId, avgPrecio> */
+export async function getHistoricalAvg(marca: Marca): Promise<Record<number, number>> {
+  const { data: prods } = await supabase
+    .from('dim_producto')
+    .select('id')
+    .eq('marca', marca)
+  if (!prods || prods.length === 0) return {}
+  const ids = prods.map((p: any) => p.id)
+
+  const { data } = await supabase
+    .from('fact_precios')
+    .select('producto_id, precio')
+    .in('producto_id', ids)
+  if (!data) return {}
+
+  const sums: Record<number, { sum: number; count: number }> = {}
+  for (const row of data) {
+    const pid = row.producto_id as number
+    if (!sums[pid]) sums[pid] = { sum: 0, count: 0 }
+    sums[pid].sum += row.precio
+    sums[pid].count += 1
+  }
+  const result: Record<number, number> = {}
+  for (const [pid, { sum, count }] of Object.entries(sums)) {
+    result[Number(pid)] = sum / count
+  }
+  return result
+}
+
+export interface Oportunidad {
+  productoId: number
+  nombre: string
+  minPrecio: number
+  superMinimo: string
+  ahorrosPct: number
+}
+
+/** Top 5 oportunidades de ahorro: productos con mayor descuento vs promedio histórico */
+export async function getOportunidades(marca: Marca): Promise<Oportunidad[]> {
+  const [productos, ultimos, historicalAvg] = await Promise.all([
+    getProductosByMarca(marca),
+    getUltimosPrecios(marca),
+    getHistoricalAvg(marca),
+  ])
+
+  // Build min price per product today
+  const minMap: Record<number, { precio: number; super_: string }> = {}
+  for (const row of ultimos) {
+    const prod = row.dim_producto as any
+    const sup = row.dim_supermercado as any
+    const pid = prod.id as number
+    if (!minMap[pid] || row.precio < minMap[pid].precio) {
+      minMap[pid] = { precio: row.precio, super_: sup.nombre }
+    }
+  }
+
+  const SUPER_RENAMES: Record<string, string> = {
+    carrefour: 'Carrefour',
+    coope: 'Cooperativa Obrera',
+    coto: 'Coto',
+    dia: 'Dia',
+    disco: 'Disco',
+    vea: 'Vea',
+  }
+
+  const oportunidades: Oportunidad[] = []
+  for (const prod of productos) {
+    const min = minMap[prod.id]
+    const avg = historicalAvg[prod.id]
+    if (!min || !avg || avg === 0) continue
+    const ahorrosPct = ((avg - min.precio) / avg) * 100
+    if (ahorrosPct <= 0) continue
+    oportunidades.push({
+      productoId: prod.id,
+      nombre: prod.nombre,
+      minPrecio: min.precio,
+      superMinimo: SUPER_RENAMES[min.super_] ?? min.super_,
+      ahorrosPct,
+    })
+  }
+
+  return oportunidades.sort((a, b) => b.ahorrosPct - a.ahorrosPct).slice(0, 5)
+}
+
 /** Comparar precio de un producto en la última fecha disponible */
 export async function getPrecioComparacion(productoId: number) {
   const { data } = await supabase

@@ -3,6 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+const SUPER_RENAMES: Record<string, string> = {
+  carrefour: 'Carrefour',
+  coope: 'Cooperativa Obrera',
+  coto: 'Coto',
+  dia: 'Dia',
+  disco: 'Disco',
+  vea: 'Vea',
+}
+
 function formatPrecio(precio: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(precio)
 }
@@ -15,9 +24,10 @@ interface Props {
   productos: Producto[]
   precioMap: PrecioMap
   supermercados: string[]
+  historicalAvg?: Record<number, number>
 }
 
-export default function ProductTable({ slug, productos, precioMap, supermercados }: Props) {
+export default function ProductTable({ slug, productos, precioMap, supermercados, historicalAvg }: Props) {
   const [query, setQuery] = useState('')
 
   const filtered = query.trim()
@@ -42,14 +52,21 @@ export default function ProductTable({ slug, productos, precioMap, supermercados
             <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
               <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300 min-w-[200px]">Producto</th>
               {supermercados.map(s => (
-                <th key={s} className="text-right px-3 py-3 font-medium text-gray-600 dark:text-gray-300 capitalize">{s}</th>
+                <th key={s} className="text-right px-3 py-3 font-medium text-gray-600 dark:text-gray-300">
+                  {SUPER_RENAMES[s] ?? s}
+                </th>
               ))}
+              {historicalAvg && (
+                <th className="text-right px-3 py-3 font-medium text-gray-500 dark:text-gray-400 border-l border-gray-100 dark:border-gray-800">
+                  Promedio histórico
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={supermercados.length + 1} className="text-center px-4 py-8 text-gray-400">
+                <td colSpan={supermercados.length + 1 + (historicalAvg ? 1 : 0)} className="text-center px-4 py-8 text-gray-400">
                   No se encontraron productos
                 </td>
               </tr>
@@ -57,6 +74,8 @@ export default function ProductTable({ slug, productos, precioMap, supermercados
               const precios = precioMap[prod.id] ?? {}
               const valores = Object.values(precios).filter(Boolean)
               const minPrecio = valores.length ? Math.min(...valores) : null
+              const maxPrecio = valores.length > 1 ? Math.max(...valores) : null
+              const avg = historicalAvg?.[prod.id]
 
               return (
                 <tr
@@ -70,16 +89,30 @@ export default function ProductTable({ slug, productos, precioMap, supermercados
                   </td>
                   {supermercados.map(s => {
                     const precio = precios[s]
-                    const esMenor = precio && minPrecio && precio === minPrecio
+                    const esMin = precio != null && minPrecio != null && precio === minPrecio
+                    const esMax = precio != null && maxPrecio != null && precio === maxPrecio
                     return (
                       <td
                         key={s}
-                        className={`px-3 py-2.5 text-right tabular-nums ${esMenor ? 'text-green-700 dark:text-green-400 font-semibold' : 'text-gray-700 dark:text-gray-300'} ${!precio ? 'text-gray-300 dark:text-gray-600' : ''}`}
+                        className={`px-3 py-2.5 text-right tabular-nums ${
+                          esMin
+                            ? 'bg-green-50 dark:bg-green-950/40 text-green-800 dark:text-green-300 font-semibold'
+                            : esMax
+                            ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 font-semibold'
+                            : precio
+                            ? 'text-gray-700 dark:text-gray-300'
+                            : 'text-gray-300 dark:text-gray-600'
+                        }`}
                       >
                         {precio ? formatPrecio(precio) : '—'}
                       </td>
                     )
                   })}
+                  {historicalAvg && (
+                    <td className="px-3 py-2.5 text-right tabular-nums text-gray-500 dark:text-gray-400 border-l border-gray-100 dark:border-gray-800">
+                      {avg != null ? formatPrecio(avg) : '—'}
+                    </td>
+                  )}
                 </tr>
               )
             })}
