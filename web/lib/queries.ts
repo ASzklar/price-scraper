@@ -46,30 +46,30 @@ export async function getPrecioEvolucion(productoId: number) {
 
 /** Precio más reciente de todos los productos de una marca, por supermercado */
 export async function getUltimosPrecios(marca: Marca) {
-  // Step 1: get product ids for this brand
+  // Step 1: product ids for this brand
   const { data: prods } = await supabase
     .from('dim_producto')
     .select('id')
     .eq('marca', marca)
   if (!prods || prods.length === 0) return []
-  const ids = prods.map(p => p.id)
+  const ids = prods.map((p: any) => p.id)
 
-  // Step 2: get the latest date that has data for any of these products
+  // Step 2: latest fecha_id that has data for these products
   const { data: fechaData } = await supabase
     .from('fact_precios')
-    .select('dim_fecha!inner(fecha)')
+    .select('fecha_id')
     .in('producto_id', ids)
-    .order('dim_fecha(fecha)', { ascending: false })
+    .order('fecha_id', { ascending: false })
     .limit(1)
   if (!fechaData || fechaData.length === 0) return []
-  const ultimaFecha = (fechaData[0].dim_fecha as any).fecha
+  const ultimaFechaId = fechaData[0].fecha_id
 
-  // Step 3: get all prices for those products on that date
+  // Step 3: all prices for those products on that fecha_id
   const { data } = await supabase
     .from('fact_precios')
     .select('precio, dim_producto!inner(id, nombre, marca), dim_supermercado!inner(nombre), dim_fecha!inner(fecha)')
     .in('producto_id', ids)
-    .eq('dim_fecha.fecha', ultimaFecha)
+    .eq('fecha_id', ultimaFechaId)
   return data ?? []
 }
 
