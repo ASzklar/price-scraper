@@ -311,6 +311,7 @@ unification_map_not = {
         'Alimento A Base De Plantas Not Mila 220g',
         'NotMila Meat 220 Gr.',
         'Notmila Meat 220g (2u)',
+        'Milanesa 110 Gr Notmila',
     ],
     'Not Chicken Sticks 300g': [
         'Nuggets Not chicken sticks 300 g.',
@@ -395,7 +396,18 @@ unification_map_not = {
     ],
     'Dulce de Leche NotCo Pote 250g': [
         'Dulce de leche Notco en pote 250 g.',
-    ]
+    ],
+    'Not Burger Espinaca 150g (2uni)': [
+        'Medallones de espinaca Not Burger 2 uni',
+        'Medallón de Espinaca Congelado x 2 Un 150 Grs Notburguer',
+    ],
+    'Not Burger Calabaza 150g (2uni)': [
+        'Medallones de calabaza Not Burger 2 uni',
+        'Medallón Sabor Calabaza x 2 Un 150 Grs NotCo',
+    ],
+    'Not Mila con Provenzal 110g': [
+        'Mila con provenzal Notmila 110 grs',
+    ],
 }
 
 unification_map_vegetalex = {
