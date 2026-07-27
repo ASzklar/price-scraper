@@ -77,6 +77,7 @@ def insert_precios(fecha: date, marca: str, filas: list[dict]) -> None:
     fecha_id = _upsert_fecha(fecha)
     super_ids = _get_supermercado_ids()
 
+    import math
     records = []
     for fila in filas:
         producto_id = _upsert_producto(fila['producto_unificado'], marca)
@@ -87,6 +88,8 @@ def insert_precios(fecha: date, marca: str, filas: list[dict]) -> None:
             try:
                 precio_float = float(precio)
             except (TypeError, ValueError):
+                continue
+            if math.isnan(precio_float):
                 continue
             records.append({
                 'fecha_id': fecha_id,

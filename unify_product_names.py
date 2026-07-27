@@ -782,6 +782,8 @@ PRODUCTOS_EXCLUIDOS_FELICES_LAS_VACAS = {
 # --- Main execution ---
 import os
 from datetime import date as _date
+from dotenv import load_dotenv
+load_dotenv()
 
 PRODUCT_COLUMN = 'producto'
 SUPERMARKET_COLUMNS = ['carrefour', 'coope', 'coto', 'dia', 'disco', 'vea']
