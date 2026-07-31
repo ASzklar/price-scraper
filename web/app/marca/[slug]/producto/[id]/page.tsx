@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { MARCA_LABELS, type Marca } from '@/lib/queries'
@@ -9,6 +9,8 @@ import { SUPER_COLORS, SUPER_RENAMES } from '@/lib/constants'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
+
+const MARCAS_VALIDAS: Marca[] = ['not', 'vegetalex', 'felices_las_vacas']
 
 function formatPrecio(v: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(v)
@@ -30,28 +32,41 @@ export default function ProductoPage() {
   const slug = params.slug as string
   const productoId = Number(params.id)
 
+  if (!MARCAS_VALIDAS.includes(slug as Marca) || Number.isNaN(productoId)) {
+    notFound()
+  }
+
   const [nombre, setNombre] = useState('')
   const [chartData, setChartData] = useState<any[]>([])
   const [supermercados, setSupermercados] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     async function load() {
-      // Nombre del producto
-      const { data: prod } = await supabase
+      // Nombre del producto. PGRST116 = "no encontrado" (0 filas con
+      // .single()), es un resultado válido, no una falla real.
+      const { data: prod, error: prodError } = await supabase
         .from('dim_producto')
         .select('nombre')
         .eq('id', productoId)
         .single()
+      if (prodError && prodError.code !== 'PGRST116') {
+        console.error('[supabase]', prodError.message)
+        setError(true)
+        setLoading(false)
+        return
+      }
       if (prod) setNombre(prod.nombre)
 
       // Precios históricos
-      const { data: rows } = await supabase
+      const { data: rows, error: rowsError } = await supabase
         .from('fact_precios')
         .select('precio, dim_fecha!inner(fecha), dim_supermercado!inner(nombre)')
         .eq('producto_id', productoId)
         .order('dim_fecha(fecha)', { ascending: true })
 
+      if (rowsError) { console.error('[supabase]', rowsError.message); setError(true); setLoading(false); return }
       if (!rows) { setLoading(false); return }
 
       // Pivotear: fecha -> { supermercado: precio }
@@ -113,6 +128,11 @@ export default function ProductoPage() {
 
       {loading ? (
         <div className="text-center py-16 text-gray-400">Cargando...</div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <p className="text-gray-900 dark:text-gray-100 font-semibold mb-1">Hubo un problema cargando este producto</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Probá de nuevo en unos minutos.</p>
+        </div>
       ) : chartData.length === 0 ? (
         <div className="text-center py-16 text-gray-400">Sin datos disponibles</div>
       ) : (

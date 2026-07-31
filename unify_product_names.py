@@ -836,10 +836,15 @@ for filename in os.listdir(RAW_DATA_PATH):
             unification_map,
             excluidos=excluidos,
         )
+
+        if unified_df is None or unified_df.empty:
+            print(f"[ERROR] {filename} no produjo datos unificados (revisar columnas/formato) — se deja en Raw para reintentar, no se mueve a Used.")
+            continue
+
         print(f"[OK] Unificado: {filename}")
 
         # Insertar en Supabase si está configurado y la unificación produjo datos
-        if _db_enabled and unified_df is not None and not unified_df.empty:
+        if _db_enabled:
             match = re.match(r'precios_async_(\d{4}-\d{2}-\d{2})_', filename)
             if match:
                 fecha = _date.fromisoformat(match.group(1))

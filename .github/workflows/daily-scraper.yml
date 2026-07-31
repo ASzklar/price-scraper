@@ -11,6 +11,7 @@ on:
 jobs:
   run-scraper:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
@@ -33,6 +34,15 @@ jobs:
 
       - name: Run all supermarkets scraper
         run: python scrape_all_async_v2.py
+
+      - name: Upload raw scrape as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-scrape-${{ github.run_number }}
+          path: Data/Raw/
+          retention-days: 30
+          if-no-files-found: ignore
 
       - name: Normalize product names and upload to Supabase
         env:

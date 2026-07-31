@@ -11,99 +11,111 @@ export const MARCA_LABELS: Record<Marca, string> = {
 
 export const SUPERMERCADOS = ['carrefour', 'coope', 'coto', 'dia', 'disco', 'vea']
 
+/** Espera una promesa de Supabase y tira una excepcion real si vino `error`,
+ * en vez de dejar que se pierda silenciosamente (un error de Supabase se veia
+ * exactamente igual que "no hay datos"). */
+async function unwrap<T>(
+  res: PromiseLike<{ data: T | null; error: { message: string } | null }>
+): Promise<T> {
+  const { data, error } = await res
+  if (error) {
+    console.error('[supabase]', error.message)
+    throw new Error(error.message)
+  }
+  return (data ?? ([] as unknown as T))
+}
+
 /** Rango de fechas disponibles en la DB */
 export async function getDateRange() {
-  const { data } = await supabase
-    .from('dim_fecha')
-    .select('fecha')
-    .order('fecha', { ascending: true })
-  if (!data || data.length === 0) return { min: null, max: null }
-  return { min: data[0].fecha as string, max: data[data.length - 1].fecha as string }
+  const data = await unwrap<{ fecha: string }[]>(
+    supabase.from('dim_fecha').select('fecha').order('fecha', { ascending: true })
+  )
+  if (data.length === 0) return { min: null, max: null }
+  return { min: data[0].fecha, max: data[data.length - 1].fecha }
 }
 
 /** Todos los productos de una marca */
 export async function getProductosByMarca(marca: Marca) {
-  const { data } = await supabase
-    .from('dim_producto')
-    .select('id, nombre')
-    .eq('marca', marca)
-    .order('nombre')
-  return data ?? []
+  return unwrap(
+    supabase.from('dim_producto').select('id, nombre').eq('marca', marca).order('nombre')
+  )
 }
 
 /** Evolución de precio de un producto en todos los supermercados */
 export async function getPrecioEvolucion(productoId: number) {
-  const { data } = await supabase
-    .from('fact_precios')
-    .select(`
-      precio,
-      dim_fecha!inner(fecha),
-      dim_supermercado!inner(nombre)
-    `)
-    .eq('producto_id', productoId)
-    .order('dim_fecha(fecha)', { ascending: true })
-  return data ?? []
+  return unwrap(
+    supabase
+      .from('fact_precios')
+      .select(`
+        precio,
+        dim_fecha!inner(fecha),
+        dim_supermercado!inner(nombre)
+      `)
+      .eq('producto_id', productoId)
+      .order('dim_fecha(fecha)', { ascending: true })
+  )
 }
 
 /** Precio más reciente de todos los productos de una marca, por supermercado */
 export async function getUltimosPrecios(marca: Marca) {
   // Step 1: product ids for this brand
-  const { data: prods } = await supabase
-    .from('dim_producto')
-    .select('id')
-    .eq('marca', marca)
-  if (!prods || prods.length === 0) return []
-  const ids = prods.map((p: any) => p.id)
+  const prods = await unwrap<{ id: number }[]>(
+    supabase.from('dim_producto').select('id').eq('marca', marca)
+  )
+  if (prods.length === 0) return []
+  const ids = prods.map((p) => p.id)
 
   // Step 2: latest fecha_id that has data for these products
-  const { data: fechaData } = await supabase
-    .from('fact_precios')
-    .select('fecha_id')
-    .in('producto_id', ids)
-    .order('fecha_id', { ascending: false })
-    .limit(1)
-  if (!fechaData || fechaData.length === 0) return []
+  const fechaData = await unwrap<{ fecha_id: number }[]>(
+    supabase
+      .from('fact_precios')
+      .select('fecha_id')
+      .in('producto_id', ids)
+      .order('fecha_id', { ascending: false })
+      .limit(1)
+  )
+  if (fechaData.length === 0) return []
   const ultimaFechaId = fechaData[0].fecha_id
 
   // Step 3: all prices for those products on that fecha_id
-  const { data } = await supabase
-    .from('fact_precios')
-    .select('precio, dim_producto!inner(id, nombre, marca), dim_supermercado!inner(nombre), dim_fecha!inner(fecha)')
-    .in('producto_id', ids)
-    .eq('fecha_id', ultimaFechaId)
-  return data ?? []
+  return unwrap(
+    supabase
+      .from('fact_precios')
+      .select('precio, dim_producto!inner(id, nombre, marca), dim_supermercado!inner(nombre), dim_fecha!inner(fecha)')
+      .in('producto_id', ids)
+      .eq('fecha_id', ultimaFechaId)
+  )
 }
 
 /** Promedio histórico de precio por producto (últimos 90 días). Returns Record<productoId, avgPrecio> */
 export async function getHistoricalAvg(marca: Marca): Promise<Record<number, number>> {
-  const { data: prods } = await supabase
-    .from('dim_producto')
-    .select('id')
-    .eq('marca', marca)
-  if (!prods || prods.length === 0) return {}
-  const ids = prods.map((p: any) => p.id)
+  const prods = await unwrap<{ id: number }[]>(
+    supabase.from('dim_producto').select('id').eq('marca', marca)
+  )
+  if (prods.length === 0) return {}
+  const ids = prods.map((p) => p.id)
 
   // Get fecha_ids for the last 90 days
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - 90)
   const cutoffStr = cutoff.toISOString().slice(0, 10)
-  const { data: fechas } = await supabase
-    .from('dim_fecha')
-    .select('id')
-    .gte('fecha', cutoffStr)
-  if (!fechas || fechas.length === 0) return {}
-  const fechaIds = fechas.map((f: any) => f.id)
+  const fechas = await unwrap<{ id: number }[]>(
+    supabase.from('dim_fecha').select('id').gte('fecha', cutoffStr)
+  )
+  if (fechas.length === 0) return {}
+  const fechaIds = fechas.map((f) => f.id)
 
-  const { data } = await supabase
-    .from('fact_precios')
-    .select('producto_id, precio')
-    .in('producto_id', ids)
-    .in('fecha_id', fechaIds)
-  if (!data) return {}
+  const data = await unwrap<{ producto_id: number; precio: number }[]>(
+    supabase
+      .from('fact_precios')
+      .select('producto_id, precio')
+      .in('producto_id', ids)
+      .in('fecha_id', fechaIds)
+  )
 
   const sums: Record<number, { sum: number; count: number }> = {}
   for (const row of data) {
-    const pid = row.producto_id as number
+    const pid = row.producto_id
     if (!sums[pid]) sums[pid] = { sum: 0, count: 0 }
     sums[pid].sum += row.precio
     sums[pid].count += 1
@@ -160,19 +172,21 @@ export function computeOportunidades(
 
 /** Comparar precio de un producto en la última fecha disponible */
 export async function getPrecioComparacion(productoId: number) {
-  const { data } = await supabase
-    .from('fact_precios')
-    .select(`
-      precio,
-      dim_supermercado!inner(nombre),
-      dim_fecha!inner(fecha)
-    `)
-    .eq('producto_id', productoId)
-    .order('dim_fecha(fecha)', { ascending: false })
+  const data = await unwrap<any[]>(
+    supabase
+      .from('fact_precios')
+      .select(`
+        precio,
+        dim_supermercado!inner(nombre),
+        dim_fecha!inner(fecha)
+      `)
+      .eq('producto_id', productoId)
+      .order('dim_fecha(fecha)', { ascending: false })
+  )
 
   // Agrupar por supermercado, quedarse con el último precio de cada uno
   const bySuper: Record<string, { precio: number; fecha: string }> = {}
-  for (const row of data ?? []) {
+  for (const row of data) {
     const super_nombre = (row.dim_supermercado as any).nombre
     if (!bySuper[super_nombre]) {
       bySuper[super_nombre] = {
