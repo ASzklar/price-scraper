@@ -60,20 +60,3 @@ jobs:
           git add Data/Cleaned/*.csv Data/Used/*.csv
           git commit -m "Add generated CSVs for run ${{ github.run_number }}" || echo "No changes to commit"
           git push origin HEAD:main
-
-      - name: Notify by email on failure
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          from: Price Scraper Bot
-          to: ${{ secrets.MAIL_TO }}
-          subject: "⚠️ Falló el scraper diario — run #${{ github.run_number }}"
-          body: |
-            El workflow "Daily Price Scraper" falló en el run #${{ github.run_number }}.
-
-            Ver el log completo acá:
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
