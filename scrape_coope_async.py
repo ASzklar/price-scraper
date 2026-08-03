@@ -1,21 +1,12 @@
-import re
 import asyncio
 from playwright.async_api import async_playwright
 
-_NOTCO_RE = re.compile(
-    r'\bnot(?:co|milk|burger|burguer|mila|chicken|chorixo|protein|cream|cheese|salxicha|creamcheese)\b'
-    r'|\bnot\s+(?:milk|burger|mila|chicken|chorixo|protein|cream|cheese|co\b)',
-    re.IGNORECASE
-)
+from marca_matcher import es_producto_de_marca
 
 async def scrape_coope(busqueda, max_pages=5):
     url = "https://www.lacoopeencasa.coop/"
     productos = []
     vistos = set()
-    if busqueda.lower() == "not":
-        patron = _NOTCO_RE
-    else:
-        patron = re.compile(r'\b' + re.escape(busqueda), re.IGNORECASE)
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -44,8 +35,7 @@ async def scrape_coope(busqueda, max_pages=5):
                 nombre = await nombre_elem.inner_text() if nombre_elem else ""
                 nombre = nombre.strip()
 
-                nombre_minuscula = nombre.lower()
-                if patron.search(nombre) is None:
+                if not es_producto_de_marca(nombre, busqueda):
                     continue
 
                 precio_entero = await card.query_selector("div.precio-entero")

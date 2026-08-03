@@ -1,18 +1,7 @@
-import re
 import asyncio
 from playwright.async_api import async_playwright
 
-_NOTCO_RE = re.compile(
-    r'\bnot(?:co|milk|burger|burguer|mila|chicken|chorixo|protein|cream|cheese|salxicha|creamcheese)\b'
-    r'|\bnot\s+(?:milk|burger|mila|chicken|chorixo|protein|cream|cheese|co\b)',
-    re.IGNORECASE
-)
-
-def _es_producto_de_marca(nombre: str, marca: str) -> bool:
-    if marca.lower() == "not":
-        return bool(_NOTCO_RE.search(nombre))
-    patron = re.compile(r'\b' + re.escape(marca), re.IGNORECASE)
-    return bool(patron.search(nombre))
+from marca_matcher import es_producto_de_marca as _es_producto_de_marca
 
 async def scrape_dia(marca):
     url = f"https://diaonline.supermercadosdia.com.ar/{marca.lower()}?_q={marca}&map=ft"

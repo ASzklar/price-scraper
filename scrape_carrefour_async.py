@@ -1,18 +1,7 @@
-import re
 import asyncio
 from playwright.async_api import async_playwright
 
-_NOTCO_RE = re.compile(
-    r'\bnot(?:co|milk|burger|burguer|mila|chicken|chorixo|protein|cream|cheese|salxicha|creamcheese)\b'
-    r'|\bnot\s+(?:milk|burger|mila|chicken|chorixo|protein|cream|cheese|co\b)',
-    re.IGNORECASE
-)
-
-def _es_producto_de_marca(nombre: str, marca: str) -> bool:
-    if marca.lower() == "not":
-        return bool(_NOTCO_RE.search(nombre))
-    patron = re.compile(r'\b' + re.escape(marca), re.IGNORECASE)
-    return bool(patron.search(nombre))
+from marca_matcher import es_producto_de_marca as _es_producto_de_marca
 
 async def scrape_carrefour_marca(marca: str):
     base_url = f"https://www.carrefour.com.ar/{marca}?_q={marca}&map=ft&page={{}}"
@@ -108,13 +97,8 @@ async def scrape_carrefour_marca(marca: str):
                         pass
 
                     # Filtrar por marca
-                    nombre_producto = name.lower()
-                    marca_buscada = marca.lower()
-                    
                     should_include = _es_producto_de_marca(name, marca)
-                    if not should_include and marca.lower() == "felices las vacas":
-                        should_include = "jogurtti" in name.lower()
-                    
+
                     if should_include and name not in seen_product_names:
                         seen_product_names.add(name)
                         all_products.append((name, price))

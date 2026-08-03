@@ -1,18 +1,7 @@
-import re
 import asyncio
 from playwright.async_api import async_playwright
 
-_NOTCO_RE = re.compile(
-    r'\bnot(?:co|milk|burger|burguer|mila|chicken|chorixo|protein|cream|cheese|salxicha|creamcheese)\b'
-    r'|\bnot\s+(?:milk|burger|mila|chicken|chorixo|protein|cream|cheese|co\b)',
-    re.IGNORECASE
-)
-
-def _es_producto_de_marca(nombre: str, marca: str) -> bool:
-    if marca.lower() == "not":
-        return bool(_NOTCO_RE.search(nombre))
-    patron = re.compile(r'\b' + re.escape(marca), re.IGNORECASE)
-    return bool(patron.search(nombre))
+from marca_matcher import es_producto_de_marca as _es_producto_de_marca
 
 async def scrape_coto_all_pages(marca):
     url = f"https://www.cotodigital.com.ar/sitios/cdigi/categoria?_dyncharset=utf-8&Dy=1&Ntt={marca}&idSucursal=200"
