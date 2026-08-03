@@ -80,7 +80,11 @@ def insert_precios(fecha: date, marca: str, filas: list[dict]) -> None:
     import math
     records = []
     for fila in filas:
-        producto_id = _upsert_producto(fila['producto_unificado'], marca)
+        try:
+            producto_id = _upsert_producto(fila['producto_unificado'], marca)
+        except Exception as e:
+            print(f"[WARN] No se pudo upsertear producto '{fila.get('producto_unificado')}' ({marca}): {e}")
+            continue
         for super_nombre in SUPERMERCADOS:
             precio = fila.get(super_nombre)
             if precio is None:
@@ -101,11 +105,19 @@ def insert_precios(fecha: date, marca: str, filas: list[dict]) -> None:
     if not records:
         return
 
-    # Insertar en lotes de 500
+    # Insertar en lotes de 500. Cada lote es independiente: si uno falla
+    # (ej. una fila con una restricción violada), no debe tirar abajo los
+    # lotes restantes del mismo día/marca.
+    insertados = 0
     for i in range(0, len(records), 500):
-        client.table('fact_precios').upsert(
-            records[i:i + 500],
-            on_conflict='fecha_id,producto_id,supermercado_id'
-        ).execute()
+        lote = records[i:i + 500]
+        try:
+            client.table('fact_precios').upsert(
+                lote,
+                on_conflict='fecha_id,producto_id,supermercado_id'
+            ).execute()
+            insertados += len(lote)
+        except Exception as e:
+            print(f"[WARN] Falló el lote {i}-{i + len(lote)} de {marca} - {fecha.isoformat()}: {e}")
 
-    print(f'[DB] Insertados {len(records)} registros para {marca} - {fecha.isoformat()}')
+    print(f'[DB] Insertados {insertados}/{len(records)} registros para {marca} - {fecha.isoformat()}')
