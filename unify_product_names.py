@@ -803,6 +803,8 @@ _db_enabled = bool(os.environ.get('SUPABASE_URL') and os.environ.get('SUPABASE_K
 if _db_enabled:
     from db import insert_precios
 
+_db_errors = []
+
 # Recorrer todos los CSVs en la carpeta Raw
 for filename in os.listdir(RAW_DATA_PATH):
     if not (filename.endswith(".csv") and filename.startswith("precios_async_")):
@@ -853,6 +855,7 @@ for filename in os.listdir(RAW_DATA_PATH):
                     insert_precios(fecha, marca_slug, filas)
                 except Exception as db_err:
                     print(f"[WARN] Error al insertar en DB: {db_err}")
+                    _db_errors.append(f"{marca_slug} {fecha.isoformat()}: {db_err}")
 
         dest_path = os.path.join(USED_DATA_PATH, filename)
         os.replace(input_path, dest_path)
@@ -860,3 +863,8 @@ for filename in os.listdir(RAW_DATA_PATH):
 
     except Exception as e:
         print(f"[ERROR] procesando {filename}: {e}")
+
+if _db_errors:
+    with open('db_upload_errors.txt', 'w', encoding='utf-8') as f:
+        f.write('\n'.join(_db_errors))
+    print(f"[WARN] {len(_db_errors)} error(es) al insertar en Supabase durante este run (ver db_upload_errors.txt)")

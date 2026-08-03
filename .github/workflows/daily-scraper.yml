@@ -63,3 +63,12 @@ jobs:
           git add Data/Cleaned/*.csv Data/Used/*.csv chatbot/data/*.csv
           git commit -m "Add generated CSVs for run ${{ github.run_number }}" || echo "No changes to commit"
           git push origin HEAD:main
+
+      - name: Fail run if Supabase upload had errors
+        if: always()
+        run: |
+          if [ -f db_upload_errors.txt ]; then
+            echo "::error::Hubo errores subiendo precios a Supabase durante este run:"
+            cat db_upload_errors.txt
+            exit 1
+          fi

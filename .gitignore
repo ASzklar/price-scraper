@@ -1,5 +1,6 @@
 .venv/
 Data/Raw/
+db_upload_errors.txt
 *.log
 *.zip
 notas/
