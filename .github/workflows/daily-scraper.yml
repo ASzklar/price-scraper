@@ -7,20 +7,31 @@ on:
   schedule:
     - cron: '0 10 * * *'  # Horario de ejecución: 10AM UTC = 7AM ARG
   workflow_dispatch:      # Permite ejecución manual
+  push:                   # Valida en el momento cambios al propio CI o a sus dependencias
+    branches: [main]
+    paths:
+      - '.github/workflows/daily-scraper.yml'
+      - 'requirements.txt'
+
+# Evita que dos runs (p.ej. push + cron) commiteen a main al mismo tiempo
+concurrency:
+  group: daily-scraper
+  cancel-in-progress: false
 
 jobs:
   run-scraper:
-    runs-on: ubuntu-latest
+    # Imagen fijada: ubuntu-latest puede cambiar de versión y romper `playwright install --with-deps`
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: true
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -30,14 +41,15 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install Playwright browsers
-        run: python -m playwright install --with-deps
+        # Solo Chromium: es el único navegador que usan los scrapers
+        run: python -m playwright install --with-deps chromium
 
       - name: Run all supermarkets scraper
         run: python scrape_all_async_v2.py
 
       - name: Upload raw scrape as artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: raw-scrape-${{ github.run_number }}
           path: Data/Raw/
